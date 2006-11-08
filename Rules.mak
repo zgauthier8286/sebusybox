@@ -397,7 +397,7 @@ cmd_link           = $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) \
 			-o $@ $(LD_START_GROUP)  \
 			$(APPLETS_DEFINE) $(APPLET_SRC) \
 			$(BUSYBOX_DEFINE) $(BUSYBOX_SRC) $(libraries-y) \
-			$(LDBUSYBOX) $(LIBRARIES) \
+			$(LDBUSYBOX) $(LIBRARIES) -lsepol\
 			$(LD_END_GROUP)
 cmd_link.so        = $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) \
 			$(LIB_CFLAGS) $(CFLAGS_COMBINE) $(LIB_LDFLAGS) \

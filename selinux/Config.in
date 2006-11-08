@@ -1,0 +1,16 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Selinux Utilities"
+
+if CONFIG_SELINUX
+config CONFIG_LOAD_POLICY
+	bool "load_policy"
+	default n
+	help
+	  Enable support for loading SE Linux into the kernel.
+endif
+endmenu
+

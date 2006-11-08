@@ -1133,7 +1133,7 @@ USE_FEATURE_DATE_ISOFMT( \
 #define id_full_usage \
 	"Print information for USERNAME or the current user\n\n" \
 	"Options:\n" \
-	USAGE_SELINUX("\t-c\tprints only the security context\n") \
+	USAGE_SELINUX("\t-Z\tprints only the security context\n") \
 	"\t-g\tprints only the group ID\n" \
 	"\t-u\tprints only the user ID\n" \
 	"\t-n\tprint a name instead of a number\n" \
@@ -2326,6 +2326,15 @@ USE_FEATURE_MDEV_CONFIG( \
 #else
 #define USAGE_PS "\nOptions:"
 #endif
+
+#define load_policy_trivial_usage \
+        ""
+#define load_policy_full_usage \
+	        "load SELinux policy\n"
+		
+#define load_policy_example_usage \
+        "$ load_policy /etc/selinux/strict/policy/policy.17\n"
+			
 #if ENABLE_FEATURE_PS_WIDE
 #define USAGE_PS_WIDE(a) a
 #else
@@ -2337,7 +2346,7 @@ USE_FEATURE_MDEV_CONFIG( \
 #define ps_full_usage \
 	"Report process status\n" \
 	USAGE_PS \
-	USAGE_SELINUX("\n\t-c\tshow SE Linux context") \
+	USAGE_SELINUX("\n\t-Z\tshow SE Linux context") \
 	USAGE_PS_WIDE("\n\tw\twide output")
 
 #define ps_example_usage \
