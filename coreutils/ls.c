@@ -798,7 +798,7 @@ static int list_single(struct dnode *dn)
 #endif
 
 #ifdef CONFIG_SELINUX
-# define LS_STR_SELINUX	"K"
+# define LS_STR_SELINUX	"Z"
 #else
 # define LS_STR_SELINUX	""
 #endif
@@ -809,7 +809,7 @@ static int list_single(struct dnode *dn)
 # define LS_STR_AUTOWIDTH	""
 #endif
 
-static const char ls_options[]="Cadil1gnsxAk" \
+static const char ls_options[]="Cadil1gnsxA" \
 	LS_STR_TIMESTAMPS \
 	USE_FEATURE_LS_SORTFILES("SXrv") \
 	LS_STR_FILETYPES \
@@ -836,11 +836,6 @@ static const unsigned opt_flags[] = {
 	LIST_BLOCKS,				/* s */
 	DISP_ROWS,					/* x */
 	DISP_HIDDEN,				/* A */
-#ifdef CONFIG_SELINUX
-	LIST_CONTEXT,				/* k */
-#else
-	0,							/* k - ingored */
-#endif
 #ifdef CONFIG_FEATURE_LS_TIMESTAMPS
 	TIME_CHANGE | (ENABLE_FEATURE_LS_SORTFILES * SORT_CTIME),	/* c */
 	LIST_FULLTIME,				/* e */
@@ -867,7 +862,7 @@ static const unsigned opt_flags[] = {
 	LS_DISP_HR,					/* h */
 #endif
 #ifdef CONFIG_SELINUX
-	LIST_MODEBITS|LIST_NLINKS|LIST_CONTEXT|LIST_SIZE|LIST_DATE_TIME, /* K */
+	LIST_MODEBITS|LIST_ID_NAME |LIST_CONTEXT, /* Z */
 #endif
 #ifdef CONFIG_FEATURE_AUTOWIDTH
        0, 0,                    /* T, w - ignored */
@@ -955,7 +950,7 @@ int ls_main(int argc, char **argv)
 				all_fmt &= ~TIME_MASK;
 			}
 			if (flags & LIST_CONTEXT) {
-				all_fmt |= STYLE_SINGLE;
+				all_fmt |= STYLE_LONG;
 			}
 #ifdef CONFIG_FEATURE_HUMAN_READABLE
 			if (opt == 'l') {

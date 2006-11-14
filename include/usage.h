@@ -1659,7 +1659,7 @@ USE_FEATURE_DATE_ISOFMT( \
 #endif
 
 #define ls_trivial_usage \
-	"[-1Aa" USAGE_LS_TIMESTAMPS("c") "Cd" USAGE_LS_TIMESTAMPS("e") USAGE_LS_FILETYPES("F") "iln" USAGE_LS_FILETYPES("p") USAGE_LS_FOLLOWLINKS("L") USAGE_LS_RECURSIVE("R") USAGE_LS_SORTFILES("rS") "s" USAGE_AUTOWIDTH("T") USAGE_LS_TIMESTAMPS("tu") USAGE_LS_SORTFILES("v") USAGE_AUTOWIDTH("w") "x" USAGE_LS_SORTFILES("X") USE_FEATURE_HUMAN_READABLE("h") "k" USAGE_SELINUX("K") "] [filenames...]"
+	"[-1Aa" USAGE_LS_TIMESTAMPS("c") "Cd" USAGE_LS_TIMESTAMPS("e") USAGE_LS_FILETYPES("F") "iln" USAGE_LS_FILETYPES("p") USAGE_LS_FOLLOWLINKS("L") USAGE_LS_RECURSIVE("R") USAGE_LS_SORTFILES("rS") "s" USAGE_AUTOWIDTH("T") USAGE_LS_TIMESTAMPS("tu") USAGE_LS_SORTFILES("v") USAGE_AUTOWIDTH("w") "x" USAGE_LS_SORTFILES("X") USE_FEATURE_HUMAN_READABLE("h") USAGE_SELINUX("Z") "] [filenames...]"
 #define ls_full_usage \
 	"List directory contents\n\n" \
 	"Options:\n" \
@@ -1690,8 +1690,7 @@ USE_FEATURE_DATE_ISOFMT( \
 	USAGE_LS_SORTFILES("\t-X\tsort the listing by extension\n") \
 	USE_FEATURE_HUMAN_READABLE( \
 	"\t-h\tprint sizes in human readable format (e.g., 1K 243M 2G )\n") \
-	USAGE_SELINUX("\t-k\tprint security context\n") \
-	USAGE_SELINUX("\t-K\tprint security context in long format\n")
+	USAGE_SELINUX("\t-Z\tprint security context\n")
 
 #define lsattr_trivial_usage \
 	"[-Radlv] [files...]"
