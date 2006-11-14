@@ -1,35 +1,32 @@
 # Makefile for busybox
 #
-# Copyright (C) 2003 by Dan Walsh <dwalsh@redhat.com>
-# Copyright (C) 1999-2003 by Erik Andersen <andersen@codepoet.org>
+# Copyright (C) 1999-2005 by Erik Andersen <andersen@codepoet.org>
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#
+# Licensed under the GPL v2, see the file LICENSE in this tarball.
 
 SELINUX_AR:=selinux.a
 ifndef $(SELINUX_DIR)
-SELINUX_DIR:=$(TOPDIR)selinux/
+SELINUX_DIR:=$(top_builddir)/selinux/
 endif
+srcdir=$(top_srcdir)/selinux
 
 SELINUX-y:=
 SELINUX-$(CONFIG_LOAD_POLICY)		+= load_policy.o
+SELINUX-$(CONFIG_RUNCON)		+= runcon.o
+
+ifneq ($(strip $(SELINUX-y)),)
 libraries-y+=$(SELINUX_DIR)$(SELINUX_AR)
+endif
+
+SELINUX_SRC-y:=$(patsubst %.o,$(srcdir)/%.c,$(SELINUX-y))
+SELINUX_SRC-a:=$(wildcard $(srcdir)/*.c)
+APPLET_SRC-y+=$(SELINUX_SRC-y)
+APPLET_SRC-a+=$(SELINUX_SRC-a)
 
 $(SELINUX_DIR)$(SELINUX_AR): $(patsubst %,$(SELINUX_DIR)%, $(SELINUX-y))
-	$(AR) -ro $@ $(patsubst %,$(SELINUX_DIR)%, $(SELINUX-y))
+	$(do_ar)
 
 $(SELINUX_DIR)%.o: $(SELINUX_DIR)%.c
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
+	$(compile.c)
+
 
