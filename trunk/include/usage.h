@@ -2334,7 +2334,26 @@ USE_FEATURE_MDEV_CONFIG( \
 		
 #define load_policy_example_usage \
         "$ load_policy /etc/selinux/strict/policy/policy.17\n"
-			
+
+#define runcon_trivial_usage \
+	"runcon [-c] [-u USER] [-r ROLE] [-t TYPE] [-l RANGE] COMMAND [args]\n" \
+	"runcon CONTEXT COMMAND [args]\n"
+
+#define runcon_full_usage \
+	"runcon [-c] [-u USER] [-r ROLE] [-t TYPE] [-l RANGE] COMMAND [args]\n" \
+	"runcon CONTEXT COMMAND [args]\n" \
+	"Run a program in a different security context.\n\n" \
+	"  CONTEXT            Complete security context\n" \
+	"  -c, --compute      compute process transition context before modifying\n" \
+	"  -t, --type=TYPE    type (for same role as parent)\n" \
+	"  -u, --user=USER    user identity\n" \
+	"  -r, --role=ROLE    role\n" \
+	"  -l, --range=RANGE  levelrange\n" \
+	"  -h, --help         display this help and exit\n"
+
+#define runcon_example_usage \
+	"$ runcon -l s0 bash\n"
+
 #if ENABLE_FEATURE_PS_WIDE
 #define USAGE_PS_WIDE(a) a
 #else

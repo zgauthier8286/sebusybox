@@ -11,6 +11,20 @@ config CONFIG_LOAD_POLICY
 	default n
 	help
 	  Enable support for loading SE Linux into the kernel.
+
+config CONFIG_RUNCON
+	bool "runcon"
+	default n
+	help
+	  Enable support for runcon command as a SELinux utility.
+
+config CONFIG_FEATURE_RUNCON_LONG_OPTIONS
+	bool "Enable long options"
+	default n
+	depends on CONFIG_RUNCON && CONFIG_GETOPT_LONG
+	help
+	  Support long options for the runcon applet.
 endif
+
 endmenu
 
