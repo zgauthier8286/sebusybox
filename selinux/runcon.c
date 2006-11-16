@@ -57,10 +57,10 @@ static int runcon_parse_options(int argc, char *argv[], struct runcon_environ *e
 	bb_applet_long_options = runcon_options;
 #endif
 	opts = bb_getopt_ulflags(argc, argv, "r:t:u:l:chv",
-				 env->role,
-				 env->type,
-				 env->user,
-				 env->range);
+				 &(env->role),
+				 &(env->type),
+				 &(env->user),
+				 &(env->range));
 
 	env->compute_trans = (opts & OPTS_COMPUTE);
 	if (opts & OPTS_VERSION) {
