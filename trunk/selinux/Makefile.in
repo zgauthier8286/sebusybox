@@ -11,6 +11,7 @@ endif
 srcdir=$(top_srcdir)/selinux
 
 SELINUX-y:=
+SELINUX-$(CONFIG_GETENFORCE)		+= getenforce.o
 SELINUX-$(CONFIG_LOAD_POLICY)		+= load_policy.o
 SELINUX-$(CONFIG_RUNCON)		+= runcon.o
 SELINUX-$(CONFIG_RESTORECON)		+= restorecon.o

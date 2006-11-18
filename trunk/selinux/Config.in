@@ -6,6 +6,12 @@
 menu "Selinux Utilities"
 
 if CONFIG_SELINUX
+config CONFIG_GETENFORCE
+	bool "getenforce"
+	default n
+	help
+	  Enable support to get the current mode of SELinux.
+
 config CONFIG_LOAD_POLICY
 	bool "load_policy"
 	default n
