@@ -2596,6 +2596,10 @@ USE_FEATURE_MDEV_CONFIG( \
 	"Options:\n" \
 	"\t-r\tReset output to /dev/console."
 
+#define setenforce_trivial_usage \
+	"[ Enforcing | Permissive | 1 | 0 ]"
+#define setenforce_full_usage
+
 #define setkeycodes_trivial_usage \
 	"SCANCODE KEYCODE ..."
 #define setkeycodes_full_usage \
