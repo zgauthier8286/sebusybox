@@ -12,6 +12,12 @@ config CONFIG_GETENFORCE
 	help
 	  Enable support to get the current mode of SELinux.
 
+config CONFIG_GETSEBOOL
+	bool "getsebool"
+	default n
+	help
+	  Enable support to get SELinux boolean values.
+
 config CONFIG_LOAD_POLICY
 	bool "load_policy"
 	default n

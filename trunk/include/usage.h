@@ -924,6 +924,11 @@ USE_FEATURE_DATE_ISOFMT( \
 	"\t-I initstring\tSets the init string to send before anything else\n" \
 	"\t-H login_host\tLog login_host into the utmp file as the hostname"
 
+#define getsebool_trivial_usage \
+	"-a or getsebool boolean..."
+#define getsebool_full_usage \
+	"-a	Show all SELinux booleans."
+
 #define grep_trivial_usage \
 	"[-ihHnqvs" \
 	USE_FEATURE_GREP_EGREP_ALIAS("E") \
