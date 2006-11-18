@@ -24,6 +24,13 @@ config CONFIG_FEATURE_RUNCON_LONG_OPTIONS
 	depends on CONFIG_RUNCON && CONFIG_GETOPT_LONG
 	help
 	  Support long options for the runcon applet.
+
+config CONFIG_RESTORECON
+	bool "restorecon"
+	default n
+	help
+	  Enable support for restorecon command as a SELinux utility.
+
 endif
 
 endmenu
