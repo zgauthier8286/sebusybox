@@ -2620,6 +2620,11 @@ USE_FEATURE_MDEV_CONFIG( \
 #define setlogcons_full_usage \
 	"Redirects the kernel output to console N (0 for current)."
 
+#define setsebool_trivial_usage \
+	"[ -P ] boolean value | bool1=val1 bool2=val2..."
+#define setsebool_full_usage \
+	"-P	write all pending boolean values into the policy file on disk"
+
 #define setsid_trivial_usage \
 	"program [arg ...]"
 #define setsid_full_usage \

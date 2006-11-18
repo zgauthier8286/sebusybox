@@ -48,6 +48,12 @@ config CONFIG_SETENFORCE
 	default n
 	help
 	  Enable support to modify the mode SELinux is running in.
+
+config CONFIG_SETSEBOOL
+	bool "setsebool"
+	default n
+	help
+	  Enable support to set SELinux boolean values.
 endif
 
 endmenu
