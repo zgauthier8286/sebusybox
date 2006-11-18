@@ -13,6 +13,7 @@ srcdir=$(top_srcdir)/selinux
 SELINUX-y:=
 SELINUX-$(CONFIG_LOAD_POLICY)		+= load_policy.o
 SELINUX-$(CONFIG_RUNCON)		+= runcon.o
+SELINUX-$(CONFIG_RESTORECON)		+= restorecon.o
 
 ifneq ($(strip $(SELINUX-y)),)
 libraries-y+=$(SELINUX_DIR)$(SELINUX_AR)

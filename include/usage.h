@@ -2334,7 +2334,20 @@ USE_FEATURE_MDEV_CONFIG( \
 #define load_policy_example_usage \
         "$ load_policy /etc/selinux/strict/policy/policy.17\n"
 
+#define restorecon_trivial_usage \
+        "restorecon [-Rnv] pathname..."
+#define restorecon_full_usage \
+	        "-e   Specify directory to exclude\n"\
+		"-i   Ignore error if file does not exist\n"\
+		"-n	Do not change any file labels.\n"\
+		"-v	Show changes in file labels. \n"\
+		"-o	filename save list of files with incorrect context\n"\
+		"-F	Force reset of context to match file_context for customizable files\n"
+#define restorecon_example_usage \
+        "$ restorecon /dev/tty*\n"
+
 #define runcon_trivial_usage \
+
 	"runcon [-c] [-u USER] [-r ROLE] [-t TYPE] [-l RANGE] COMMAND [args]\n" \
 	"runcon CONTEXT COMMAND [args]\n"
 
