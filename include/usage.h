@@ -868,6 +868,11 @@ USE_FEATURE_DATE_ISOFMT( \
 	"\t-6         When using port/proto only search IPv6 space\n" \
 	"\t-SIGNAL    When used with -k, this signal will be used to kill"
 
+#define getenforce_trivial_usage \
+	""
+#define getenforce_full_usage \
+	""
+
 #define getopt_trivial_usage \
 	"[OPTIONS]..."
 #define getopt_full_usage \
