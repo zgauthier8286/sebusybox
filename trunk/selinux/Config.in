@@ -37,6 +37,11 @@ config CONFIG_RESTORECON
 	help
 	  Enable support for restorecon command as a SELinux utility.
 
+config CONFIG_SETENFORCE
+	bool "setenforce"
+	default n
+	help
+	  Enable support to modify the mode SELinux is running in.
 endif
 
 endmenu
