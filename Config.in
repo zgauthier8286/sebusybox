@@ -210,16 +210,6 @@ config CONFIG_SELINUX
 
 	  Most people will leave this set to 'N'.
 
-config CONFIG_SELINUX_USE_SEMANAGE
-	bool "Use semange framework"
-	default n
-	depends on CONFIG_SELINUX
-	help
-		If you want to use semanage framework,choose y.
-		To use modular policy, you have to need it.
-		However,it consumes more storage area.
-
-
 config CONFIG_BUSYBOX_EXEC_PATH
 	string "Path to BusyBox executable"
 	default "/proc/self/exe"
