@@ -6,6 +6,19 @@
 menu "Selinux Utilities"
 
 if CONFIG_SELINUX
+config CONFIG_CHCON
+	bool "chcon"
+	default n
+	help
+	  Enable support for chcon command as a SELinux utility.
+
+config CONFIG_FEATURE_CHCON_LONG_OPTIONS
+	bool "Enable long options"
+	default y
+	depends on CONFIG_CHCON && CONFIG_GETOPT_LONG
+	help
+	  Support long options for the chcon applet.
+
 config CONFIG_GETENFORCE
 	bool "getenforce"
 	default n
