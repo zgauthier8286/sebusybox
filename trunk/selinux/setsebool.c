@@ -17,12 +17,10 @@
 #include <syslog.h>
 #include <pwd.h>
 #include <selinux/selinux.h>
-#ifdef CONFIG_SELINUX_USE_SEMANAGE
 #include <semanage/handle.h>
 #include <semanage/booleans_local.h>
 #include <semanage/booleans_active.h>
 #include <semanage/boolean_record.h>
-#endif
 #include <errno.h>
 
 #define SETSEBOOL_OPT_PERMANENT		1
@@ -81,8 +79,8 @@ int setsebool_main(int argc, char **argv)
 static int selinux_set_boolean_list(size_t boolcnt,
 				    SELboolean * boollist, int perm)
 {
-	/*FIXME "1" should be perm? Need to ask NSA SELinux list*/
-	if (security_set_boolean_list(boolcnt, boollist, 1)) {
+
+	if (security_set_boolean_list(boolcnt, boollist, perm)) {
 		if (errno == ENOENT)
 			fprintf(stderr, "Could not change active booleans: "
 				"Invalid boolean\n");
@@ -94,17 +92,7 @@ static int selinux_set_boolean_list(size_t boolcnt,
 
 	return 0;
 }
-/* Apply (permanent) boolean changes to policy without libsemanage */
-static int set_boolean_list(size_t boolcnt,
-                                 SELboolean * boollist, int perm)
-{
-	if (selinux_set_boolean_list(boolcnt, boollist, perm) < 0){
-		fprintf(stderr, "Could not change policy booleans\n");
-		return -1;
-	}
-	return 0;
-}
- 
+
 /* Apply (permanent) boolean changes to policy via libsemanage */
 static int semanage_set_boolean_list(size_t boolcnt,
 				     SELboolean * boollist, int perm)
@@ -128,8 +116,7 @@ static int semanage_set_boolean_list(size_t boolcnt,
 			"Error when checking whether policy is managed\n");
 		goto err;
 
-	} else if (managed == 0) {	
-		/*FIXME "1" should be perm? Need to ask NSA SELinux list*/
+	} else if (managed == 0) {
 		if (selinux_set_boolean_list(boolcnt, boollist, 1) < 0)
 			goto err;
 		goto out;
@@ -238,14 +225,8 @@ int setbool(char **list, size_t start, size_t end)
 		*value_ptr = '=';
 	}
 
-#ifdef CONFIG_SELINUX_USE_SEMANAGE
 	if (semanage_set_boolean_list(boolcnt, vallist, permanent) < 0)
 		goto err;
-#endif
-#ifndef CONFIG_SELINUX_USE_SEMANAGE
-    if (set_boolean_list(boolcnt, vallist, permanent) < 0)
-		goto err;
-#endif
 
 	/* Now log what was done */
 	pwd = getpwuid(getuid());
