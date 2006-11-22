@@ -117,7 +117,7 @@ static int semanage_set_boolean_list(size_t boolcnt,
 		goto err;
 
 	} else if (managed == 0) {
-		if (selinux_set_boolean_list(boolcnt, boollist, 1) < 0)
+		if (selinux_set_boolean_list(boolcnt, boollist, perm) < 0)
 			goto err;
 		goto out;
 	}
