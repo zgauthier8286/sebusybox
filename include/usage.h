@@ -2792,6 +2792,7 @@ USE_FEATURE_START_STOP_DAEMON_FANCY( \
 	"\t-f\tdisplay filesystem status\n" \
 	"\t-L,-l\tdereference links\n" \
 	"\t-t\tdisplay info in terse form\n" \
+	USAGE_SELINUX("\t-Z\tprint security context\n") \
 	USAGE_STAT_FORMAT( \
 	"\nValid format sequences for files:\n" \
 	"  %a   Access rights in octal\n" \
@@ -2826,6 +2827,7 @@ USE_FEATURE_START_STOP_DAEMON_FANCY( \
 	"  %c   Total file nodes in file system\n" \
 	"  %d   Free file nodes in file system\n" \
 	"  %f   Free blocks in file system\n" \
+	USAGE_SELINUX("  %C   Security context in SELinux\n") \
 	"  %i   File System ID in hex\n" \
 	"  %l   Maximum length of filenames\n" \
 	"  %n   File name\n" \
