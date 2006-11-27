@@ -67,6 +67,12 @@ config CONFIG_SETSEBOOL
 	default n
 	help
 	  Enable support to set SELinux boolean values.
+
+config CONFIG_TOGGLESEBOOL
+	bool "togglesebool"
+	default n
+	help
+	  Enable support to flip the current value of a boolean.
 endif
 
 endmenu

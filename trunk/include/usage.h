@@ -3163,6 +3163,11 @@ USE_FEATURE_START_STOP_DAEMON_FANCY( \
 	"Options:\n" \
 	"\t-v\tDisplays verbose resource usage information"
 
+#define togglesebool_trivial_usage \
+	"boolname1 [boolname2 ...]"
+#define togglesebool_full_usage \
+	""
+
 #define top_trivial_usage \
 	"[-d <seconds>]"
 #define top_full_usage \
