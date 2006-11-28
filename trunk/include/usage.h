@@ -2611,6 +2611,11 @@ USE_FEATURE_MDEV_CONFIG( \
 	"$ echo \"foo\" | sed -e 's/f[a-zA-Z]o/bar/g'\n" \
 	"bar\n"
 
+#define selinuxenabled_trivial_usage \
+	""
+#define selinuxenabled_full_usage \
+	""
+
 #define seq_trivial_usage \
 	"[first [increment]] last"
 #define seq_full_usage \

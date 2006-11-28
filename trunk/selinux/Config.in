@@ -56,6 +56,13 @@ config CONFIG_RESTORECON
 	help
 	  Enable support for restorecon command as a SELinux utility.
 
+config CONFIG_SELINUXENABLED
+	bool "selinuxenabled"
+	default n
+	help
+	  Enable support for this command to be used within shell scripts
+	  to determine if selinux is enabled.
+
 config CONFIG_SESTATUS
 	bool "sestatus"
 	default n
