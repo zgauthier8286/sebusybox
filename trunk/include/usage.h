@@ -1888,7 +1888,7 @@ USE_FEATURE_MDEV_CONFIG( \
 	"Creates a named pipe (identical to 'mknod name p')\n\n" \
 	"Options:\n" \
 	"\t-m\tcreate the pipe using the specified mode (default a=rw)" \
-	USAGE_SELINUX("\n\t-Z\tset security context\n")
+	USAGE_SELINUX("\n\t-Z\tset security context")
 
 #define mkfs_minix_trivial_usage \
 	"[-c | -l filename] [-nXX] [-iXX] /dev/name [blocks]"
@@ -1911,7 +1911,7 @@ USE_FEATURE_MDEV_CONFIG( \
 	"\tb:\tMake a block (buffered) device\n" \
 	"\tc or u:\tMake a character (un-buffered) device\n" \
 	"\tp:\tMake a named pipe. MAJOR and MINOR are ignored for named pipes" \
-	USAGE_SELINUX("\n\t-Z\tset security context\n")
+	USAGE_SELINUX("\n\t-Z\tset security context")
 #define mknod_example_usage \
 	"$ mknod /dev/fd0 b 2 0\n" \
 	"$ mknod -m 644 /tmp/pipe p\n"
@@ -2342,7 +2342,7 @@ USE_FEATURE_MDEV_CONFIG( \
 #define load_policy_trivial_usage \
         ""
 #define load_policy_full_usage \
-	        "load SELinux policy\n"
+	        "load SELinux policy"
 		
 #define load_policy_example_usage \
         "$ load_policy /etc/selinux/strict/policy/policy.17\n"
@@ -2355,7 +2355,7 @@ USE_FEATURE_MDEV_CONFIG( \
 		"-n	Do not change any file labels.\n"\
 		"-v	Show changes in file labels. \n"\
 		"-o	filename save list of files with incorrect context\n"\
-		"-F	Force reset of context to match file_context for customizable files\n"
+		"-F	Force reset of context to match file_context for customizable files"
 #define restorecon_example_usage \
         "$ restorecon /dev/tty*\n"
 
@@ -2374,7 +2374,7 @@ USE_FEATURE_MDEV_CONFIG( \
 	"  -u, --user=USER    user identity\n" \
 	"  -r, --role=ROLE    role\n" \
 	"  -l, --range=RANGE  levelrange\n" \
-	"  -h, --help         display this help and exit\n"
+	"  -h, --help         display this help and exit"
 
 #define runcon_example_usage \
 	"$ runcon -l s0 bash\n"
@@ -2398,7 +2398,7 @@ USE_FEATURE_MDEV_CONFIG( \
 	"-R, --recursive        change files and directories recursively\n"		\
 	"-v, --verbose          output a diagnostic for every file processed\n"		\
 	"    --help             display this help and exit\n"				\
-	"    --version          output version information and exit\n"
+	"    --version          output version information and exit"
 
 #define chcon_example_usage \
 	"$ chcon -t user_home_t memo.txt\n"
@@ -2654,7 +2654,7 @@ USE_FEATURE_MDEV_CONFIG( \
         " -o filename write out file names with wrong context.\n\n"\
    
         " spec_file	The specification file.\n"\
-        " pathname...	The file systems to label (omit if using -s).\n"
+        " pathname...	The file systems to label (omit if using -s)."
 
 #define setfiles_example_usage \
 	"./setfiles -v file_contexts `mount | awk '/ext3/{print $3}'`"
