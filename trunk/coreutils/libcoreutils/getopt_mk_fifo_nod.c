@@ -20,21 +20,48 @@
  *
  */
 
+/* Nov 28, 2006      Yoshinori Sato <ysato@users.sourceforge.jp>
+ *
+ * Add -Z (SELinux) support.
+ */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include "libbb.h"
 #include "coreutils.h"
+#ifdef CONFIG_SELINUX
+#include <selinux/selinux.h>
+#endif
 
 mode_t getopt_mk_fifo_nod(int argc, char **argv)
 {
 	mode_t mode = 0666;
 	char *smode = NULL;
+#ifdef CONFIG_SELINUX
+	int opt = 0;
+	security_context_t scontext = NULL;
 
+	opt = bb_getopt_ulflags(argc, argv, "m:Z:", &smode, &scontext);
+#else
 	bb_getopt_ulflags(argc, argv, "m:", &smode);
+#endif
 	if(smode) {
 		if (bb_parse_mode(smode, &mode))
 			umask(0);
 	}
+#ifdef CONFIG_SELINUX
+	if(opt & 2) {
+		if(!is_selinux_enabled()) {
+			bb_error_msg_and_die ("Sorry, -Z can be used only on "
+					      "a selinux-enabled kernel.\n" );
+		}
+		if (setfscreatecon(scontext)) {
+			bb_error_msg_and_die ("Sorry, cannot set default context "
+					      "to %s.\n", scontext);
+		}
+	}
+#endif
+
 	return mode;
 }

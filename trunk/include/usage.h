@@ -1887,7 +1887,8 @@ USE_FEATURE_MDEV_CONFIG( \
 #define mkfifo_full_usage \
 	"Creates a named pipe (identical to 'mknod name p')\n\n" \
 	"Options:\n" \
-	"\t-m\tcreate the pipe using the specified mode (default a=rw)"
+	"\t-m\tcreate the pipe using the specified mode (default a=rw)" \
+	USAGE_SELINUX("\n\t-Z\tset security context\n")
 
 #define mkfs_minix_trivial_usage \
 	"[-c | -l filename] [-nXX] [-iXX] /dev/name [blocks]"
@@ -1909,7 +1910,8 @@ USE_FEATURE_MDEV_CONFIG( \
 	"TYPEs include:\n" \
 	"\tb:\tMake a block (buffered) device\n" \
 	"\tc or u:\tMake a character (un-buffered) device\n" \
-	"\tp:\tMake a named pipe. MAJOR and MINOR are ignored for named pipes"
+	"\tp:\tMake a named pipe. MAJOR and MINOR are ignored for named pipes" \
+	USAGE_SELINUX("\n\t-Z\tset security context\n")
 #define mknod_example_usage \
 	"$ mknod /dev/fd0 b 2 0\n" \
 	"$ mknod -m 644 /tmp/pipe p\n"
