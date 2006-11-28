@@ -1841,7 +1841,8 @@ USE_FEATURE_MDEV_CONFIG( \
 	"Create the DIRECTORY(ies) if they do not already exist\n\n" \
 	"Options:\n" \
 	"\t-m\tset permission mode (as in chmod), not rwxrwxrwx - umask\n" \
-	"\t-p\tno error if existing, make parent directories as needed"
+	"\t-p\tno error if existing, make parent directories as needed" \
+	USAGE_SELINUX("\n\t-Z\tset security context")
 #define mkdir_example_usage \
 	"$ mkdir /tmp/foo\n" \
 	"$ mkdir /tmp/foo\n" \
