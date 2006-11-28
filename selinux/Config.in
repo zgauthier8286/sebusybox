@@ -56,6 +56,12 @@ config CONFIG_RESTORECON
 	help
 	  Enable support for restorecon command as a SELinux utility.
 
+config CONFIG_SESTATUS
+	bool "sestatus"
+	default n
+	help
+	  Enable support for sestatus command as a SELinux utility.
+
 config CONFIG_SETENFORCE
 	bool "setenforce"
 	default n
