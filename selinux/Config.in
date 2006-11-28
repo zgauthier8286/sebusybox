@@ -62,6 +62,12 @@ config CONFIG_SETENFORCE
 	help
 	  Enable support to modify the mode SELinux is running in.
 
+config CONFIG_SETFILES
+	bool "setfiles"
+	default n
+	help
+	  Enable support for setfiles command as a SELinux utility.
+
 config CONFIG_SETSEBOOL
 	bool "setsebool"
 	default n

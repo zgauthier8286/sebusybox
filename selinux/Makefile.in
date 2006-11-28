@@ -18,6 +18,7 @@ SELINUX-$(CONFIG_LOAD_POLICY)		+= load_policy.o
 SELINUX-$(CONFIG_RUNCON)		+= runcon.o
 SELINUX-$(CONFIG_RESTORECON)		+= restorecon.o
 SELINUX-$(CONFIG_SETENFORCE)		+= setenforce.o
+SELINUX-$(CONFIG_SETFILES)		+= setfiles.o
 SELINUX-$(CONFIG_SETSEBOOL)		+= setsebool.o
 SELINUX-$(CONFIG_TOGGLESEBOOL)		+= togglesebool.o
 

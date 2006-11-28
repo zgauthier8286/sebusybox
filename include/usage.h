@@ -2625,6 +2625,31 @@ USE_FEATURE_MDEV_CONFIG( \
 	"Options:\n" \
 	"\t-r\tReset output to /dev/console."
 
+#define setfiles_trivial_usage \
+	"setfiles [-dnpqsvW] [-e directory ] [-c policy] [-o filename ] spec_file pathname..."
+
+#define setfiles_full_usage \
+        "setfiles [-dnpqsvW] [-e directory ] [-c policy] [-o filename ] spec_file pathname...\n" \
+        " -e   Specify directory to exclude\n" \
+        " -F   Force reset of context to match file_context for customizable files\n"\
+        " -c   Verify the specification file using a binary policy\n"\
+        " -d   Show what specification matched each file.\n"\
+        " -l   Log changes in files labels to syslog.\n"\
+        " -n	Do not change any file labels.\n"\
+        " -p   Show progress.  Prints * for every 1000 files\n"\
+        " -q   Be quiet (suppress non-error output).\n"\
+        " -r   Use an alternate root path\n"\
+        " -s   Use stdin for a list of files instead of searching a partition.\n"\
+        " -v	Show changes in file labels.\n"\
+        " -W   Warn about entries that have no matching file.\n"\
+        " -o filename write out file names with wrong context.\n\n"\
+   
+        " spec_file	The specification file.\n"\
+        " pathname...	The file systems to label (omit if using -s).\n"
+
+#define setfiles_example_usage \
+	"./setfiles -v file_contexts `mount | awk '/ext3/{print $3}'`"
+
 #define setenforce_trivial_usage \
 	"[ Enforcing | Permissive | 1 | 0 ]"
 #define setenforce_full_usage
