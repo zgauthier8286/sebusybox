@@ -2618,6 +2618,12 @@ USE_FEATURE_MDEV_CONFIG( \
 	"\tFIRST\tLAST\n" \
 	"\tFIRST\tINCREMENT\tLAST"
 
+#define sestatus_trivial_usage \
+	"[-v] [-b]"
+#define sestatus_full_usage \
+	" -v   Verbose check of process and file contexts.\n" \
+	" -b   Print any boolean values."
+
 #define setconsole_trivial_usage \
 	"[-r|--reset] [DEVICE]"
 #define setconsole_full_usage \
