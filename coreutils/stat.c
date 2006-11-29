@@ -428,7 +428,7 @@ static int do_statfs(char const *filename, char const *format)
 			  "Block size: %-10s\n"
 			  "Blocks: Total: %-10b Free: %-10f Available: %a\n"
 			  "Inodes: Total: %-10c Free: %d\n");
-	print_it(format, filename, print_statfs, &statfsbuf);
+	print_it(format, filename, print_statfs, &statfsbuf, scontext);
 #else
 		format = (flags & OPT_TERSE
 			  ? (flags & OPT_SELINUX ? "%n %i %l %t %s %b %f %a %c %d %C\n":
@@ -448,7 +448,7 @@ static int do_statfs(char const *filename, char const *format)
 			);
 	print_it(format, filename, print_statfs, &statfsbuf, scontext);
 #endif
-#else
+#else	/* CONFIG_FEATURE_STAT_FORMAT */
 	format = (flags & OPT_TERSE
 		? "%s %llx %lu "
 		: "  File: \"%s\"\n"
@@ -496,10 +496,11 @@ static int do_statfs(char const *filename, char const *format)
 	       (intmax_t) (statfsbuf.f_files),
 	       (intmax_t) (statfsbuf.f_ffree),
 		scontext);
-#endif
+
 	if (scontext)
 		freecon(scontext);
 #endif
+#endif	/* CONFIG_FEATURE_STAT_FORMAT */
 	return 1;
 }
 
@@ -581,10 +582,10 @@ static int do_stat(char const *filename, char const *format)
 					  "Access: %x\n" "Modify: %y\n" "Change: %z\n");
 			}
 		}
-	}
 #endif
+	}
 	print_it(format, filename, print_stat, &statbuf, scontext);
-#else
+#else	/* CONFIG_FEATURE_STAT_FORMAT */
 	if (flags & OPT_TERSE) {
 		printf("%s %ju %ju %lx %lu %lu %jx %ju %lu %lx %lx %lu %lu %lu %lu",
 		       filename,
@@ -657,7 +658,7 @@ static int do_stat(char const *filename, char const *format)
 		       human_time(statbuf.st_mtime),
 		       human_time(statbuf.st_ctime));
 	}
-#endif
+#endif	/* CONFIG_FEATURE_STAT_FORMAT */
 	return 1;
 }
 
@@ -678,6 +679,7 @@ int stat_main(int argc, char **argv)
 	if (argc == optind)           /* files */
 		bb_show_usage();
 
+#ifdef CONFIG_SELINUX
 	if (flags & OPT_SELINUX) {
 		if(is_selinux_enabled() == 0) {
 			fprintf( stderr, "Sorry, -Z can be used only on "
@@ -685,6 +687,7 @@ int stat_main(int argc, char **argv)
 			return EXIT_FAILURE;
 		}
 	}
+#endif	/* CONFIG_SELINUX */
 	for (i = optind; i < argc; ++i)
 		ok &= statfunc(argv[i], format);
 
