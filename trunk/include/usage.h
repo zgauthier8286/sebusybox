@@ -270,12 +270,14 @@
 	"Copies SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.\n" \
 	"\n" \
 	"\t-a\tSame as -dpR\n" \
+	USAGE_SELINUX("\t-c\tPreserves security context\n") \
 	"\t-d,-P\tPreserves links\n" \
 	"\t-H,-L\tDereference all symlinks (implied by default)\n" \
 	"\t-p\tPreserves file attributes if possible\n" \
 	"\t-f\tforce (implied; ignored) - always set\n" \
 	"\t-i\tinteractive, prompt before overwrite\n" \
-	"\t-R,-r\tCopies directories recursively"
+	"\t-R,-r\tCopies directories recursively" \
+	USAGE_SELINUX("\n\t-Z CONTEXT\tset security context of copy to CONTEXT")
 
 #define cpio_trivial_usage \
 	"-[dimtuv][F cpiofile]"
