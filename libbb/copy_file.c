@@ -3,6 +3,7 @@
  * Mini copy_file implementation for busybox
  *
  * Copyright (C) 2001 by Matt Kraai <kraai@alumni.carnegiemellon.edu>
+ * SELinux support by Yuichi Nakamura <ynakam@hitachisoft.jp>
  *
  * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
  *
@@ -11,6 +12,10 @@
 #include "libbb.h"
 #include <utime.h>
 #include <errno.h>
+#ifdef CONFIG_SELINUX
+#include <selinux/selinux.h>          /* for is_selinux_enabled() */
+extern int  selinux_enabled;
+#endif
 
 int copy_file(const char *source, const char *dest, int flags)
 {
@@ -41,6 +46,26 @@ int copy_file(const char *source, const char *dest, int flags)
 		}
 		dest_exists = 1;
 	}
+
+#ifdef CONFIG_SELINUX
+	if ( (flags & FILEUTILS_PRESERVE_SECURITY_CONTEXT) && selinux_enabled ){
+		security_context_t con;
+		if (lgetfilecon (source, &con) >= 0){
+			if (setfscreatecon(con) < 0) {
+				bb_perror_msg ("cannot set setfscreatecon %s", con);
+				freecon(con);
+				return -1;
+			}	
+		}else{
+			if( errno == ENOTSUP || errno == ENODATA ) {
+				setfscreatecon(NULL);
+			} else {
+				bb_perror_msg ("cannot  lgetfilecon %s", source);
+				return -1;
+			}
+		}
+	}
+#endif
 
 	if (S_ISDIR(source_stat.st_mode)) {
 		DIR *dp;
@@ -152,6 +177,25 @@ int copy_file(const char *source, const char *dest, int flags)
 
 				goto dest_removed;
 			}
+
+#ifdef CONFIG_SELINUX
+			if ( ((flags & FILEUTILS_PRESERVE_SECURITY_CONTEXT)||(flags & FILEUTILS_SET_SECURITY_CONTEXT)) && selinux_enabled ){
+				security_context_t con;  
+				if(getfscreatecon(&con) == -1){
+					bb_perror_msg ("cannot getfscreatecon");
+					return -1;
+				}				
+				if (con){
+					if(fsetfilecon(dst_fd, con) == -1){
+						bb_perror_msg ("cannot fsetfilecon:%s,%s",dest,con);
+						freecon(con);
+						return -1;
+					}
+					freecon(con);
+				}
+			}
+#endif
+
 		} else {
 dest_removed:
 			dst_fd = open(dest, O_WRONLY|O_CREAT, source_stat.st_mode);

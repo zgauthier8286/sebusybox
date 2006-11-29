@@ -3,6 +3,7 @@
  * Mini cp implementation for busybox
  *
  * Copyright (C) 2000 by Matt Kraai <kraai@alumni.carnegiemellon.edu>
+ * SELinux support by Yuichi Nakamura <ynakam@hitachisoft.jp>
  *
  * Licensed under GPL v2 or later, see file LICENSE in this tarball for details.
  */
@@ -28,6 +29,11 @@
 #include "busybox.h"
 #include "libcoreutils/coreutils.h"
 
+#ifdef CONFIG_SELINUX
+#include <selinux/selinux.h>          /* for is_selinux_enabled() */
+int selinux_enabled=0;
+#endif
+
 int cp_main(int argc, char **argv)
 {
 	struct stat source_stat;
@@ -38,8 +44,17 @@ int cp_main(int argc, char **argv)
 	int d_flags;
 	int flags;
 	int status = 0;
+#ifdef CONFIG_SELINUX
+	char *context_str=NULL;
 
+	selinux_enabled= (is_selinux_enabled()>0);
+#endif
+
+#ifdef CONFIG_SELINUX
+	flags = bb_getopt_ulflags(argc, argv, "pdRfiarPHLcZ:",&context_str);
+#else
 	flags = bb_getopt_ulflags(argc, argv, "pdRfiarPHL");
+#endif
 
 	if (flags & 32) {
 		flags |= (FILEUTILS_PRESERVE_STATUS | FILEUTILS_RECUR | FILEUTILS_DEREFERENCE);
@@ -64,6 +79,26 @@ int cp_main(int argc, char **argv)
 		;
 	}
 	*/
+
+#ifdef CONFIG_SELINUX
+	if (flags & 1024){
+		flags |= FILEUTILS_PRESERVE_SECURITY_CONTEXT;
+	}
+	if (flags & 2048){
+		flags |= FILEUTILS_SET_SECURITY_CONTEXT;
+		if( !selinux_enabled ) {
+			fprintf( stderr, "Warning:  ignoring --context (-Z). "
+		             "It requires a SELinux enabled kernel.\n" );
+		}else{
+			if (flags & 1024){
+				bb_error_msg_and_die("cannot force target context to '%s' and preserve it\n", context_str);				
+			}
+			if ( setfscreatecon(context_str) < 0 ) {
+				bb_error_msg_and_die("cannot set default security context %s\n", context_str);
+			}
+		}
+	}
+#endif
 
 	flags ^= FILEUTILS_DEREFERENCE;		/* The sense of this flag was reversed. */
 
