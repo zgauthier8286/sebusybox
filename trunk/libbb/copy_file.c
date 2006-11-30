@@ -13,8 +13,7 @@
 #include <utime.h>
 #include <errno.h>
 #ifdef CONFIG_SELINUX
-#include <selinux/selinux.h>          /* for is_selinux_enabled() */
-extern int  selinux_enabled;
+#include <selinux/selinux.h>
 #endif
 
 int copy_file(const char *source, const char *dest, int flags)
@@ -48,7 +47,7 @@ int copy_file(const char *source, const char *dest, int flags)
 	}
 
 #ifdef CONFIG_SELINUX
-	if ( (flags & FILEUTILS_PRESERVE_SECURITY_CONTEXT) && selinux_enabled ){
+	if ( (flags & FILEUTILS_PRESERVE_SECURITY_CONTEXT) && is_selinux_enabled() > 0){
 		security_context_t con;
 		if (lgetfilecon (source, &con) >= 0){
 			if (setfscreatecon(con) < 0) {
@@ -179,7 +178,9 @@ int copy_file(const char *source, const char *dest, int flags)
 			}
 
 #ifdef CONFIG_SELINUX
-			if ( ((flags & FILEUTILS_PRESERVE_SECURITY_CONTEXT)||(flags & FILEUTILS_SET_SECURITY_CONTEXT)) && selinux_enabled ){
+			if ( ((flags & FILEUTILS_PRESERVE_SECURITY_CONTEXT)
+			      ||(flags & FILEUTILS_SET_SECURITY_CONTEXT))
+			     && is_selinux_enabled() > 0 ){
 				security_context_t con;  
 				if(getfscreatecon(&con) == -1){
 					bb_perror_msg ("cannot getfscreatecon");

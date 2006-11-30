@@ -31,7 +31,6 @@
 
 #ifdef CONFIG_SELINUX
 #include <selinux/selinux.h>          /* for is_selinux_enabled() */
-int selinux_enabled=0;
 #endif
 
 int cp_main(int argc, char **argv)
@@ -46,8 +45,6 @@ int cp_main(int argc, char **argv)
 	int status = 0;
 #ifdef CONFIG_SELINUX
 	char *context_str=NULL;
-
-	selinux_enabled= (is_selinux_enabled()>0);
 #endif
 
 #ifdef CONFIG_SELINUX
@@ -86,7 +83,7 @@ int cp_main(int argc, char **argv)
 	}
 	if (flags & 2048){
 		flags |= FILEUTILS_SET_SECURITY_CONTEXT;
-		if( !selinux_enabled ) {
+		if(is_selinux_enabled() == 0) {
 			fprintf( stderr, "Warning:  ignoring --context (-Z). "
 		             "It requires a SELinux enabled kernel.\n" );
 		}else{

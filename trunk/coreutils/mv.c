@@ -3,6 +3,7 @@
  * Mini mv implementation for busybox
  *
  * Copyright (C) 2000 by Matt Kraai <kraai@alumni.carnegiemellon.edu>
+ * SELinux support by Yuichi Nakamura <ynakam@hitachisoft.jp>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +36,10 @@
 #include "busybox.h"
 #include "libcoreutils/coreutils.h"
 
+#ifdef CONFIG_SELINUX
+#include <selinux/selinux.h>          /* for is_selinux_enabled() */
+#endif
+
 #if ENABLE_FEATURE_MV_LONG_OPTIONS
 static const struct option mv_long_options[] = {
 	{ "interactive", 0, NULL, 'i' },
@@ -56,6 +61,7 @@ int mv_main(int argc, char **argv)
 	unsigned long flags;
 	int dest_exists;
 	int status = 0;
+	int copy_flag = 0;
 
 #if ENABLE_FEATURE_MV_LONG_OPTIONS
 	bb_applet_long_options = mv_long_options;
@@ -124,8 +130,11 @@ DO_MOVE:
 						goto RET_1;
 					}
 				}
-				if ((copy_file(*argv, dest,
-					FILEUTILS_RECUR | FILEUTILS_PRESERVE_STATUS) >= 0) &&
+				copy_flag=	FILEUTILS_RECUR | FILEUTILS_PRESERVE_STATUS;
+#ifdef CONFIG_SELINUX
+				copy_flag |= FILEUTILS_PRESERVE_SECURITY_CONTEXT;
+#endif				
+				if ((copy_file(*argv, dest,	copy_flag) >= 0) &&
 					(remove_file(*argv, FILEUTILS_RECUR | FILEUTILS_FORCE) >= 0)) {
 					goto RET_0;
 				}
