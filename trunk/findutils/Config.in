@@ -83,6 +83,13 @@ config CONFIG_FEATURE_FIND_EXEC
 	  Support the 'find -exec' option for executing commands based upon
 	  the files matched.
 
+config CONFIG_FEATURE_FIND_CONTEXT
+	bool "Enable (-context) option for matching security context"
+	default y
+	depends on CONFIG_FIND && CONFIG_SELINUX
+	help
+	  Support the 'find -context' option for matching security context.
+
 config CONFIG_GREP
 	bool "grep"
 	default n

@@ -19,6 +19,9 @@
 #include <fnmatch.h>
 #include <time.h>
 #include <ctype.h>
+#ifdef CONFIG_SELINUX
+#include <selinux/selinux.h>
+#endif
 
 static char *pattern;
 #ifdef CONFIG_FEATURE_FIND_PRINT0
@@ -61,6 +64,10 @@ static ino_t inode_num;
 static char **exec_str;
 static int num_matches;
 static int exec_opt;
+#endif
+
+#ifdef CONFIG_FEATURE_FIND_CONTEXT
+static security_context_t scontext = NULL;
 #endif
 
 static int fileAction(const char *fileName, struct stat *statbuf, void* junk)
@@ -144,7 +151,19 @@ static int fileAction(const char *fileName, struct stat *statbuf, void* junk)
 		goto no_match;
 	}
 #endif
+#ifdef CONFIG_FEATURE_FIND_CONTEXT
+	if (scontext) {
+		security_context_t fcontext;
+		int rc;
 
+		if (lgetfilecon(fileName, &fcontext) < 0)
+			goto no_match;
+		rc = fnmatch(scontext, fcontext, 0);
+		freecon(fcontext);
+		if (rc != 0)
+			goto no_match;
+	}
+#endif
 #ifdef CONFIG_FEATURE_FIND_PRINT0
 	printf("%s%c", fileName, printsep);
 #else
@@ -316,6 +335,15 @@ int find_main(int argc, char **argv)
 			}
 			exec_str[num_matches] = bb_xstrdup(cmd_string);
 			exec_opt = 1;
+#endif
+#ifdef CONFIG_FEATURE_FIND_CONTEXT
+		} else if (strcmp(argv[i], "-context") == 0) {
+			if (is_selinux_enabled() == 0)
+				bb_error_msg_and_die("invalid predicate -context: "
+						     "SELinux is not enabled.");
+			scontext = argv[++i];
+			if (!scontext)
+				bb_error_msg_and_die(bb_msg_invalid_arg, argv[i], "-context");
 #endif
 		} else
 			bb_show_usage();

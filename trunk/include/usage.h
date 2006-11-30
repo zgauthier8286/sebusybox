@@ -777,7 +777,10 @@ USE_FEATURE_DATE_ISOFMT( \
 	"\n\t-inum N\t\tFile has inode number N" \
 ) USE_FEATURE_FIND_EXEC( \
 	"\n\t-exec CMD\tExecute CMD with all instances of {} replaced by the" \
-	"\n\t\t\tfiles matching EXPRESSION")
+	"\n\t\t\tfiles matching EXPRESSION" \
+) USE_FEATURE_FIND_CONTEXT( \
+	"\n\t-context CON\tCON matches FILE's security context" \
+)
 
 #define find_example_usage \
 	"$ find / -name passwd\n" \
