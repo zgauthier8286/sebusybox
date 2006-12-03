@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2003 by Glenn McGrath <bug1@iinet.net.au>
- *
+ *  Port to Busybox by Yuichi Nakamura <ynakam@hitachisoft.jp>
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -38,6 +38,10 @@
 #define INSTALL_OPT_GROUP  16
 #define INSTALL_OPT_MODE  32
 #define INSTALL_OPT_OWNER  64
+#ifdef CONFIG_SELINUX
+#define INSTALL_OPT_PRESERVE_SECURITY_CONTEXT  128
+#define INSTALL_OPT_SET_SECURITY_CONTEXT  256
+#endif
 
 #if ENABLE_FEATURE_INSTALL_LONG_OPTIONS
 static const struct option install_long_options[] = {
@@ -47,8 +51,49 @@ static const struct option install_long_options[] = {
 	{ "group",	0,	NULL,	'g' },
 	{ "mode",	0,	NULL,	'm' },
 	{ "owner",	0,	NULL,	'o' },
+#ifdef CONFIG_SELINUX
+	{ "preserve_context",	0,	NULL,	'P' },
+	{ "context",	0,	NULL,	'Z' },
+#endif
 	{ 0,	0,	0,	0 }
 };
+#endif
+
+#ifdef CONFIG_SELINUX
+#include <selinux/selinux.h>
+static int selinux_enabled = 0;
+static int use_default_selinux_context = 1;
+/* Modify file context to match the specified policy,  
+   If an error occurs the file will remain with the default directory 
+   context.*/
+/* This function is from coreutil 5.97-16 of Fedora Core */
+static void setdefaultfilecon(const char *path) {
+	struct stat st;
+	security_context_t scontext=NULL;
+	if (selinux_enabled != 1) {
+		/* Indicate no context found. */
+		return;
+	}
+	if (lstat(path, &st) != 0)
+		return;
+
+	/* If there's an error determining the context, or it has none, 
+	   return to allow default context */
+	if ((matchpathcon(path, st.st_mode, &scontext) != 0) ||
+	    (strcmp(scontext, "<<none>>") == 0)) {
+		if (scontext != NULL) {
+			freecon(scontext);
+		}
+		return;
+	}
+	if (lsetfilecon(path, scontext) < 0) {
+		if (errno != ENOTSUP) {
+			bb_perror_msg("warning: failed to change context of %s to %s", path, scontext);
+		}
+	}
+	freecon(scontext);
+	return;
+}
 #endif
 
 int install_main(int argc, char **argv)
@@ -61,18 +106,58 @@ int install_main(int argc, char **argv)
 	char *mode_str = "0755";
 	int copy_flags = FILEUTILS_DEREFERENCE | FILEUTILS_FORCE;
 	int ret = EXIT_SUCCESS, flags, i, isdir;
+#ifdef CONFIG_SELINUX
+	char *context_str =NULL;
+	selinux_enabled = (is_selinux_enabled()>0);
+#endif
 
 #if ENABLE_FEATURE_INSTALL_LONG_OPTIONS
 	bb_applet_long_options = install_long_options;
 #endif
 	bb_opt_complementally = "?:s--d:d--s";
 	/* -c exists for backwards compatibility, its needed */
+#ifdef CONFIG_SELINUX
+	flags = bb_getopt_ulflags(argc, argv, "cdpsg:m:o:PZ:", &gid_str, &mode_str, &uid_str,&context_str);	/* 'a' must be 2nd */
+#else
 	flags = bb_getopt_ulflags(argc, argv, "cdpsg:m:o:", &gid_str, &mode_str, &uid_str);	/* 'a' must be 2nd */
+#endif
+
 
 	/* preserve access and modification time, this is GNU behaviour, BSD only preserves modification time */
 	if (flags & INSTALL_OPT_PRESERVE_TIME) {
 		copy_flags |= FILEUTILS_PRESERVE_STATUS;
 	}
+
+#ifdef CONFIG_SELINUX
+	if (flags & INSTALL_OPT_PRESERVE_SECURITY_CONTEXT) {	  
+		if( !selinux_enabled ) {
+			bb_error_msg("Warning:  ignoring --preserve_context (-P) "
+		             "because the kernel is not selinux-enabled.\n" );		
+		}else{
+			copy_flags |= FILEUTILS_PRESERVE_SECURITY_CONTEXT;
+			use_default_selinux_context = 0;
+			if (flags & INSTALL_OPT_SET_SECURITY_CONTEXT){
+				bb_error_msg_and_die("cannot force target context and preserve it\n");
+			}
+		}
+	}
+	if (flags & INSTALL_OPT_SET_SECURITY_CONTEXT){	
+		if( !selinux_enabled ) {
+			bb_error_msg("Warning:  ignoring --context (-Z) "
+		             "because the kernel is not selinux-enabled.\n" );		
+		}else{
+			copy_flags |= FILEUTILS_SET_SECURITY_CONTEXT;
+			use_default_selinux_context = 0;
+			if (flags & INSTALL_OPT_PRESERVE_SECURITY_CONTEXT){			
+				bb_error_msg_and_die("cannot force target context == '%s' and preserve it\n", context_str);
+			}
+			if (setfscreatecon(context_str)) {
+				bb_error_msg_and_die("cannot setup default context == '%s'\n", context_str);
+			}
+		}
+	}
+#endif
+
 	bb_parse_mode(mode_str, &mode);
 	gid = get_ug_id(gid_str, bb_xgetgrnam);
 	uid = get_ug_id(uid_str, bb_xgetpwnam);
@@ -130,7 +215,10 @@ int install_main(int argc, char **argv)
 			bb_perror_msg("cannot change permissions of %s", dest);
 			ret = EXIT_FAILURE;
 		}
-
+#ifdef CONFIG_SELINUX
+		if (use_default_selinux_context)
+			setdefaultfilecon(dest);
+#endif
 		/* Set the user and group id */
 		if (lchown(dest, uid, gid) == -1) {
 			bb_perror_msg("cannot change ownership of %s", dest);

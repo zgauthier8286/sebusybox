@@ -1388,7 +1388,7 @@ USE_FEATURE_DATE_ISOFMT( \
 	"\t-x\tdo not export externs"
 
 #define install_trivial_usage \
-	"[-cgmops] [sources] <dest|directory>"
+	"[-cgmops" USAGE_SELINUX("P") USAGE_SELINUX("Z") "]  [sources] <dest|directory>"
 #define install_full_usage \
 	"Copies files and set attributes\n\n" \
 	"Options:\n" \
@@ -1399,6 +1399,8 @@ USE_FEATURE_DATE_ISOFMT( \
 	"\t-o\tset ownership\n" \
 	"\t-p\tpreserve date\n" \
 	"\t-s\tstrip symbol tables"
+	USAGE_SELINUX("\n\t-P\tpreserve security context")
+	USAGE_SELINUX("\n\t-Z CONTEXT\tset security context of copy to CONTEXT")
 
 #define ip_trivial_usage \
 	"[ OPTIONS ] { address | link | route | tunnel } { COMMAND | help }"
