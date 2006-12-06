@@ -37,7 +37,7 @@
 #include "libcoreutils/coreutils.h"
 
 #ifdef CONFIG_SELINUX
-#include <selinux/selinux.h>          /* for is_selinux_enabled() */
+#include <selinux/selinux.h>
 #endif
 
 #if ENABLE_FEATURE_MV_LONG_OPTIONS
