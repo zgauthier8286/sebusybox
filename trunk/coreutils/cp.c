@@ -30,7 +30,7 @@
 #include "libcoreutils/coreutils.h"
 
 #ifdef CONFIG_SELINUX
-#include <selinux/selinux.h>          /* for is_selinux_enabled() */
+#include <selinux/selinux.h>
 #endif
 
 int cp_main(int argc, char **argv)
