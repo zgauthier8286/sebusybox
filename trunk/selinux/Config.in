@@ -6,6 +6,12 @@
 menu "Selinux Utilities"
 
 if CONFIG_SELINUX
+config CONFIG_AVCSTAT
+	bool "avcstat"
+	default n
+	help
+	  Enable support for avcstat command as a SELinux utility.
+
 config CONFIG_CHCON
 	bool "chcon"
 	default n

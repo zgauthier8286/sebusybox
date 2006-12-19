@@ -68,6 +68,15 @@
 #define ash_full_usage \
 	"The ash shell (command interpreter)"
 
+#define avcstat_trivial_usage \
+	"[-c] [-f status_file] [interval]"
+#define avcstat_full_usage \
+	"Display SELinux AVC statistics.  If the interval parameter is specified, the\n" \
+	"program will loop, displaying updated statistics every 'interval' seconds.\n" \
+	"Relative values are displayed by default. Use the -c option to specify the\n" \
+	"display of cumulative values.  The -f option specifies the location of the\n" \
+	"AVC statistics file, defaulting to '/selinux/avc/cache_stats'."
+
 #define awk_trivial_usage \
 	"[OPTION]... [program-text] [FILE ...]"
 #define awk_full_usage \
