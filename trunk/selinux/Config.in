@@ -43,6 +43,13 @@ config CONFIG_LOAD_POLICY
 	help
 	  Enable support for loading SE Linux into the kernel.
 
+config CONFIG_MATCHPATHCON
+	bool "matchpathcon"
+	default n
+	help
+	  Enable support to get default security context of the
+	  specified path from the file contexts configuration.
+
 config CONFIG_RUNCON
 	bool "runcon"
 	default n

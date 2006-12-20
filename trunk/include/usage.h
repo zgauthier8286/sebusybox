@@ -1790,6 +1790,15 @@ USE_FEATURE_DATE_ISOFMT( \
 	"/dev/hda[0-15]\n"
 #endif
 
+#define matchpathcon_trivial_usage \
+	  "[-n] [-N] [-f file_contexts_file] [-p prefix] [-V]"
+#define matchpathcon_full_usage \
+	  "\t-n Do not display path.\n" \
+	  "\t-N Do not use translations.\n" \
+	  "\t-f file_context_file Use alternate file_context file\n" \
+	  "\t-p prefix Use prefix to speed translations\n" \
+	  "\t-V Verify file context on disk matches defaults"
+
 #ifdef CONFIG_FEATURE_MD5_SHA1_SUM_CHECK
 #define USAGE_MD5_SHA1_SUM_CHECK(a) a
 #else
