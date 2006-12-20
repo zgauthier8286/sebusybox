@@ -63,37 +63,36 @@ static const struct option install_long_options[] = {
 #include <selinux/selinux.h>
 static int selinux_enabled = 0;
 static int use_default_selinux_context = 1;
-/* Modify file context to match the specified policy,  
-   If an error occurs the file will remain with the default directory 
-   context.*/
-/* This function is from coreutil 5.97-16 of Fedora Core */
-static void setdefaultfilecon(const char *path) {
-	struct stat st;
-	security_context_t scontext=NULL;
-	if (selinux_enabled != 1) {
-		/* Indicate no context found. */
-		return;
-	}
-	if (lstat(path, &st) != 0)
-		return;
 
-	/* If there's an error determining the context, or it has none, 
-	   return to allow default context */
-	if ((matchpathcon(path, st.st_mode, &scontext) != 0) ||
-	    (strcmp(scontext, "<<none>>") == 0)) {
-		if (scontext != NULL) {
-			freecon(scontext);
-		}
+static void setdefaultfilecon(const char *path) {
+	struct stat s;
+	security_context_t scontext = NULL;
+	
+	if ( !selinux_enabled ){
+		return;
+	}	
+	if ( lstat(path, &s) != 0){
 		return;
 	}
+
+	if (matchpathcon(path, s.st_mode, &scontext) < 0){
+		return;
+	}
+	if (strcmp(scontext, "<<none>>") == 0){
+		freecon(scontext);
+		return;
+	}
+
 	if (lsetfilecon(path, scontext) < 0) {
 		if (errno != ENOTSUP) {
 			bb_perror_msg("warning: failed to change context of %s to %s", path, scontext);
 		}
 	}
+
 	freecon(scontext);
 	return;
 }
+
 #endif
 
 int install_main(int argc, char **argv)
