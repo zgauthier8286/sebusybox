@@ -4,6 +4,7 @@
  *
  * Copyright (C) 2000 by Randolph Chung <tausq@debian.org>
  *
+ * -Z option support: by Yuichi Nakamura <ynakam@hitachisoft.jp>
  * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
  */
 
@@ -26,6 +27,9 @@
 #define NAME_NOT_NUMBER   2
 #define JUST_USER         4
 #define JUST_GROUP        8
+#ifdef CONFIG_SELINUX
+#define JUST_CONTEXT    16
+#endif
 
 static short printf_full(unsigned int id, const char *arg, const char prefix)
 {
@@ -47,11 +51,14 @@ int id_main(int argc, char **argv)
 	gid_t gid;
 	unsigned long flags;
 	short status;
+#ifdef CONFIG_SELINUX
+	security_context_t scontext;
+#endif
 
 	/* Don't allow -n -r -nr -ug -rug -nug -rnug */
 	/* Don't allow more than one username */
 	bb_opt_complementally = "?1:?:u--g:g--u:r?ug:n?ug";
-	flags = bb_getopt_ulflags(argc, argv, "rnug");
+	flags = bb_getopt_ulflags(argc, argv, "rnugZ");
 
 	/* This values could be overwritten later */
 	uid = geteuid();
@@ -69,14 +76,42 @@ int id_main(int argc, char **argv)
 		/* in this case PRINT_REAL is the same */
 	}
 
-	if(flags & (JUST_GROUP | JUST_USER)) {
+#ifdef CONFIG_SELINUX
+	if(flags & (JUST_GROUP | JUST_USER | JUST_CONTEXT )) {
+#else
+	if(flags & (JUST_GROUP | JUST_USER )) {
+#endif
 		/* JUST_GROUP and JUST_USER are mutually exclusive */
 		if(flags & NAME_NOT_NUMBER) {
 			/* bb_getpwuid and bb_getgrgid exit on failure so puts cannot segfault */
 			puts((flags & JUST_USER) ? bb_getpwuid(NULL, uid, -1 ) : bb_getgrgid(NULL, gid, -1 ));
 		} else {
-			bb_printf("%u\n",(flags & JUST_USER) ? uid : gid);
+			if (flags & JUST_USER){
+				bb_printf("%u\n",uid);
+			}
+			if (flags & JUST_GROUP){
+				bb_printf("%u\n",gid);
+			}
 		}
+
+#ifdef CONFIG_SELINUX
+		if(flags & JUST_CONTEXT){
+			if( !is_selinux_enabled() ) {
+				bb_error_msg_and_die("Sorry, --context (-Z) can be used only on "
+									 "a selinux-enabled kernel.\n" );			
+			}
+			if (argc - optind == 1){
+				bb_error_msg("cannot print security context when user specified");					
+				bb_fflush_stdout_and_exit(EXIT_FAILURE);
+			}
+
+			if (getcon(&scontext)){
+				bb_error_msg("can't get process context");		
+				bb_fflush_stdout_and_exit(EXIT_FAILURE);
+			}
+			bb_printf("%s\n", scontext);
+		}
+#endif
 		/* exit */
 		bb_fflush_stdout_and_exit(EXIT_SUCCESS);
 	}
@@ -87,6 +122,7 @@ int id_main(int argc, char **argv)
 	putchar(' ');
 	/* bb_getgrgid doesn't exit on failure here */
 	status|=printf_full(gid, bb_getgrgid(NULL, gid, 0), 'g');
+	
 
 #ifdef CONFIG_SELINUX
 	if ( is_selinux_enabled() ) {
