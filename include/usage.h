@@ -2169,7 +2169,7 @@ USE_FEATURE_MDEV_CONFIG( \
 	"221 foobar closing connection\n"
 
 #define netstat_trivial_usage \
-	"[-laenrtuwx]"
+	"[-laenrtuwx" USAGE_SELINUX("Z") "]"
 #define netstat_full_usage \
 	"Netstat displays Linux networking information.\n\n" \
 	"Options:\n" \
@@ -2181,7 +2181,8 @@ USE_FEATURE_MDEV_CONFIG( \
 	"\t-t tcp sockets\n" \
 	"\t-u udp sockets\n" \
 	"\t-w raw sockets\n" \
-	"\t-x unix sockets"
+	"\t-x unix sockets"  \
+	USAGE_SELINUX("\n\t-Z display security context")
 
 #define nice_trivial_usage \
 	"[-n ADJUST] [COMMAND [ARG] ...]"

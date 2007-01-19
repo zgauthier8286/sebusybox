@@ -21,6 +21,9 @@
  *
  * 2002-04-20
  * IPV6 support added by Bart Visscher <magick@linux-fan.com>
+ *
+ * 2007-01-19
+ * SELinux option (-Z) added by KaiGai Kohei <kaigai@kaigai.gr.jp>
  */
 
 #include <stdio.h>
@@ -36,6 +39,10 @@
 #include "busybox.h"
 #include "pwd_.h"
 
+#ifdef CONFIG_SELINUX
+#include <selinux/selinux.h>
+#endif
+
 #ifdef CONFIG_ROUTE
 extern void displayroutes(int noresolve, int netstatfmt);
 #endif
@@ -47,6 +54,7 @@ extern void displayroutes(int noresolve, int netstatfmt);
 #define NETSTAT_UDP			0x20
 #define NETSTAT_RAW			0x40
 #define NETSTAT_UNIX		0x80
+#define NETSTAT_SELINUX		0x100
 
 static int flags = NETSTAT_CONNECTED |
 			NETSTAT_TCP | NETSTAT_UDP | NETSTAT_RAW | NETSTAT_UNIX;
@@ -408,6 +416,7 @@ static void unix_do_one(int nr, const char *line)
 	int num, state, type, inode;
 	void *d;
 	unsigned long refcnt, proto, unix_flags;
+	USE_SELINUX(security_context_t unixcon = NULL);
 
 	if (nr == 0) {
 		if (strstr(line, "Inode"))
@@ -511,12 +520,25 @@ static void unix_do_one(int nr, const char *line)
 
 	strcat(ss_flags, "]");
 
+#ifdef CONFIG_SELINUX
+	if ((flags & NETSTAT_SELINUX) && is_selinux_enabled()) {
+		if (lgetfilecon(path, &unixcon) < 0)
+			unixcon = NULL;
+	}
+#endif
 	printf("%-5s %-6ld %-11s %-10s %-13s ",
 		   ss_proto, refcnt, ss_flags, ss_type, ss_state);
 	if (has & HAS_INODE)
 		printf("%-6d ",inode);
 	else
 		printf("-      ");
+#ifdef CONFIG_SELINUX
+	if (flags & NETSTAT_SELINUX) {
+		printf("%-32s  ", unixcon ? unixcon : "-");
+		if (unixcon)
+			freecon(unixcon);
+	}
+#endif
 	puts(path);
 }
 
@@ -566,7 +588,7 @@ int netstat_main(int argc, char **argv)
 # define inet 1
 # define inet6 0
 #endif
-	while ((opt = getopt(argc, argv, "laenrtuwx")) != -1)
+	while ((opt = getopt(argc, argv, "laenrtuwx" USE_SELINUX("Z"))) != -1)
 		switch (opt) {
 		case 'l':
 			flags &= ~NETSTAT_CONNECTED;
@@ -596,6 +618,13 @@ int netstat_main(int argc, char **argv)
 		case 'x':
 			new_flags |= NETSTAT_UNIX;
 			break;
+#ifdef CONFIG_SELINUX
+		case 'Z':
+			if (!is_selinux_enabled())
+				bb_error_msg_and_die("SELinux is not enabled on this machine.");
+			flags |= NETSTAT_SELINUX;
+			break;
+#endif
 		default:
 			bb_show_usage();
 		}
@@ -654,7 +683,10 @@ int netstat_main(int argc, char **argv)
 				printf("(w/o servers)");
 		}
 
-		printf("\nProto RefCnt Flags       Type       State         I-Node Path\n");
+		printf("\nProto RefCnt Flags       Type       State         I-Node ");
+		if (flags & NETSTAT_SELINUX)
+			printf("Security Context                  ");
+		printf("Path\n");
 		do_info(_PATH_PROCNET_UNIX,"AF UNIX",unix_do_one);
 	}
 	return 0;
