@@ -19,6 +19,7 @@ SELINUX-$(CONFIG_LOAD_POLICY)		+= load_policy.o
 SELINUX-$(CONFIG_MATCHPATHCON)		+= matchpathcon.o
 SELINUX-$(CONFIG_RUNCON)		+= runcon.o
 SELINUX-$(CONFIG_RESTORECON)		+= restorecon.o
+SELINUX-$(CONFIG_SECON)			+= secon.o
 SELINUX-$(CONFIG_SELINUXENABLED)	+= selinuxenabled.o
 SELINUX-$(CONFIG_SETENFORCE)		+= setenforce.o
 SELINUX-$(CONFIG_SESTATUS)		+= sestatus.o

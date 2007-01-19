@@ -2616,6 +2616,41 @@ USE_FEATURE_MDEV_CONFIG( \
 #define rx_example_usage \
 	"$ rx /tmp/foo\n"
 
+#define secon_trivial_usage \
+	"secon [-hVurtscmPRfLp] [ context | - ]"
+
+#define secon_full_usage \
+	"  Usage: %s [-%s] [ context | - ]\n" \
+	"          --help        -h     Show this message.\n" \
+	"          --version     -V     Show the version.\n" \
+	"          --prompt      -P     Output in a format good for a prompt.\n" \
+	"          --user        -u     Show the user of the context.\n" \
+	"          --role        -r     Show the role of the context.\n" \
+	"          --type        -t     Show the type of the context.\n" \
+	"          --sensitivity -s     Show the sensitivity level of the context.\n" \
+	"          --clearance   -c     Show the clearance level of the context.\n" \
+	"          --mls-range   -m     Show the sensitivity to clearance range of \n" \
+	"                               the context.\n" \
+	"          --raw         -R     Show the context in \"raw\" format.\n" \
+	"          --current            Get the context for the current process.\n" \
+	"          --self               Get the context for the current process.\n" \
+	"          --self-exec          Get the exec context for the current process.\n" \
+	"          --self-fs            Get the fs context for the current process.\n" \
+	"          --self-key           Get the key context for the current process.\n" \
+	"          --parent             Get the context for the parent process.\n" \
+	"          --parent-exec        Get the exec context for the parent process.\n" \
+	"          --parent-fs          Get the fs context for the parent process.\n" \
+	"          --parent-key         Get the key context for the parent process.\n" \
+	"          --pid       -p <arg> Use the context from the specified pid.\n" \
+	"          --pid-exec     <arg> Use the exec context from the specified pid.\n" \
+	"          --pid-fs       <arg> Use the fs context from the specified pid.\n" \
+	"          --pid-key      <arg> Use the key context from the specified pid.\n" \
+	"          --file      -f <arg> Use the context from the specified file.\n" \
+	"          --link      -L <arg> Use the context from the specified link."
+
+#define secon_example_usage \
+	"$ secon\n"
+
 #define sed_trivial_usage \
 	"[-efinr] pattern [files...]"
 #define sed_full_usage \
