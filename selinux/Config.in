@@ -69,6 +69,19 @@ config CONFIG_RESTORECON
 	help
 	  Enable support for restorecon command as a SELinux utility.
 
+config CONFIG_SECON
+	bool "secon"
+	default n
+	help
+	  Enable support for secon command as a SELinux utility.
+
+config CONFIG_FEATURE_SECON_LONG_OPTIONS
+	bool "Enable long options"
+	default y
+	depends on CONFIG_SECON && CONFIG_GETOPT_LONG
+	help
+	  Support long options for the secon applet.
+
 config CONFIG_SELINUXENABLED
 	bool "selinuxenabled"
 	default n
