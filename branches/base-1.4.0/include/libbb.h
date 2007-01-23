@@ -2,58 +2,156 @@
 /*
  * Busybox main internal header file
  *
- * Licensed under the GPL v2 or later, see the file LICENSE in this tarball.
- *
  * Based in part on code from sash, Copyright (c) 1999 by David I. Bell
  * Permission has been granted to redistribute this code under the GPL.
  *
+ * Licensed under the GPL version 2, see the file LICENSE in this tarball.
  */
 #ifndef	__LIBBUSYBOX_H__
 #define	__LIBBUSYBOX_H__    1
 
-#include "bb_config.h"
 #include "platform.h"
 
 #include <ctype.h>
 #include <dirent.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <malloc.h>
 #include <netdb.h>
+#include <setjmp.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <strings.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/statfs.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
+#include <utime.h>
 
-#ifdef CONFIG_SELINUX
+#if ENABLE_SELINUX
 #include <selinux/selinux.h>
+#endif
+
+#if ENABLE_LOCALE_SUPPORT
+#include <locale.h>
+#else
+#define setlocale(x,y) ((void)0)
 #endif
 
 #include "pwd_.h"
 #include "grp_.h"
-#ifdef CONFIG_FEATURE_SHADOWPASSWDS
+/* ifdef it out, because it may include <shadow.h> */
+/* and we may not even _have_ <shadow.h>! */
+#if ENABLE_FEATURE_SHADOWPASSWDS
 #include "shadow_.h"
-#endif
-#ifdef CONFIG_FEATURE_SHA1_PASSWORDS
-# include "sha1.h"
 #endif
 
 /* Try to pull in PATH_MAX */
 #include <limits.h>
 #include <sys/param.h>
 #ifndef PATH_MAX
-#define  PATH_MAX         256
+#define PATH_MAX 256
 #endif
 
-#ifdef DMALLOC
-#include <dmalloc.h>
+/* Tested to work correctly (IIRC :]) */
+#define MAXINT(T) (T)( \
+	((T)-1) > 0 \
+	? (T)-1 \
+	: (T)~((T)1 << (sizeof(T)*8-1)) \
+	)
+
+#define MININT(T) (T)( \
+	((T)-1) > 0 \
+	? (T)0 \
+	: ((T)1 << (sizeof(T)*8-1)) \
+	)
+
+/* Large file support */
+/* Note that CONFIG_LFS forces bbox to be built with all common ops
+ * (stat, lseek etc) mapped to "largefile" variants by libc.
+ * Practically it means that open() automatically has O_LARGEFILE added
+ * and all filesize/file_offset parameters and struct members are "large"
+ * (in today's world - signed 64bit). For full support of large files,
+ * we need a few helper #defines (below) and careful use of off_t
+ * instead of int/ssize_t. No lseek64(), O_LARGEFILE etc necessary */
+#if ENABLE_LFS
+/* CONFIG_LFS is on */
+# if ULONG_MAX > 0xffffffff
+/* "long" is long enough on this system */
+#  define XATOOFF(a) xatoul_range(a, 0, LONG_MAX)
+/* usage: sz = BB_STRTOOFF(s, NULL, 10); if (errno || sz < 0) die(); */
+#  define BB_STRTOOFF bb_strtoul
+#  define STRTOOFF strtoul
+/* usage: printf("size: %"OFF_FMT"d (%"OFF_FMT"x)\n", sz, sz); */
+#  define OFF_FMT "l"
+# else
+/* "long" is too short, need "long long" */
+#  define XATOOFF(a) xatoull_range(a, 0, LLONG_MAX)
+#  define BB_STRTOOFF bb_strtoull
+#  define STRTOOFF strtoull
+#  define OFF_FMT "ll"
+# endif
+#else
+/* CONFIG_LFS is off */
+# if UINT_MAX == 0xffffffff
+/* While sizeof(off_t) == sizeof(int), off_t is typedef'ed to long anyway.
+ * gcc will throw warnings on printf("%d", off_t). Crap... */
+#  define XATOOFF(a) xatoi_u(a)
+#  define BB_STRTOOFF bb_strtou
+#  define STRTOOFF strtol
+#  define OFF_FMT "l"
+# else
+#  define XATOOFF(a) xatoul_range(a, 0, LONG_MAX)
+#  define BB_STRTOOFF bb_strtoul
+#  define STRTOOFF strtol
+#  define OFF_FMT "l"
+# endif
 #endif
+/* scary. better ideas? (but do *test* them first!) */
+#define OFF_T_MAX  ((off_t)~((off_t)1 << (sizeof(off_t)*8-1)))
+
+/* This structure defines protocol families and their handlers. */
+struct aftype {
+	char *name;
+	char *title;
+	int af;
+	int alen;
+	char *(*print) (unsigned char *);
+	char *(*sprint) (struct sockaddr *, int numeric);
+	int (*input) (int type, char *bufp, struct sockaddr *);
+	void (*herror) (char *text);
+	int (*rprint) (int options);
+	int (*rinput) (int typ, int ext, char **argv);
+
+	/* may modify src */
+	int (*getmask) (char *src, struct sockaddr * mask, char *name);
+
+	int fd;
+	char *flag_file;
+};
+
+/* This structure defines hardware protocols and their handlers. */
+struct hwtype {
+	char *name;
+	char *title;
+	int type;
+	int alen;
+	char *(*print) (unsigned char *);
+	int (*input) (char *, struct sockaddr *);
+	int (*activate) (int fd);
+	int suppress_null_addr;
+};
 
 /* Some useful definitions */
 #undef FALSE
@@ -80,12 +178,12 @@
 #endif
 
 /* buffer allocation schemes */
-#ifdef CONFIG_FEATURE_BUFFERS_GO_ON_STACK
+#if ENABLE_FEATURE_BUFFERS_GO_ON_STACK
 #define RESERVE_CONFIG_BUFFER(buffer,len)           char buffer[len]
 #define RESERVE_CONFIG_UBUFFER(buffer,len) unsigned char buffer[len]
 #define RELEASE_CONFIG_BUFFER(buffer)      ((void)0)
 #else
-#ifdef CONFIG_FEATURE_BUFFERS_GO_IN_BSS
+#if ENABLE_FEATURE_BUFFERS_GO_IN_BSS
 #define RESERVE_CONFIG_BUFFER(buffer,len)  static          char buffer[len]
 #define RESERVE_CONFIG_UBUFFER(buffer,len) static unsigned char buffer[len]
 #define RELEASE_CONFIG_BUFFER(buffer)      ((void)0)
@@ -426,6 +524,7 @@ extern int bb_default_error_retval;
 #endif
 # define VC_FORMAT "/dev/vc/%d"
 # define LOOP_FORMAT "/dev/loop/%d"
+# define LOOP_NAME "/dev/loop/"
 # define FB_0 "/dev/fb/0"
 #else
 # define CURRENT_VC "/dev/tty0"
@@ -445,118 +544,41 @@ extern int bb_default_error_retval;
 #endif
 # define VC_FORMAT "/dev/tty%d"
 # define LOOP_FORMAT "/dev/loop%d"
+# define LOOP_NAME "/dev/loop"
 # define FB_0 "/dev/fb0"
 #endif
-
-//#warning put these in .o files
 
 /* The following devices are the same on devfs and non-devfs systems.  */
 #define CURRENT_TTY "/dev/tty"
 #define CONSOLE_DEV "/dev/console"
 
-int is_in_ino_dev_hashtable(const struct stat *statbuf, char **name);
-void add_to_ino_dev_hashtable(const struct stat *statbuf, const char *name);
-void reset_ino_dev_hashtable(void);
-
-char *bb_xasprintf(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
-
-#define FAIL_DELAY    3
-extern void bb_do_delay(int seconds);
-extern void change_identity ( const struct passwd *pw );
-extern const char *change_identity_e2str ( const struct passwd *pw );
-extern void run_shell ( const char *shell, int loginshell, const char *command, const char **additional_args);
-#ifdef CONFIG_SELINUX
-extern void renew_current_security_context(void);
-extern void set_current_security_context(security_context_t sid);
-#endif
-extern int run_parts(char **args, const unsigned char test_mode, char **env);
-extern int restricted_shell ( const char *shell );
-extern void setup_environment ( const char *shell, int loginshell, int changeenv, const struct passwd *pw );
-extern int correct_password ( const struct passwd *pw );
-extern char *pw_encrypt(const char *clear, const char *salt);
-extern struct spwd *pwd_to_spwd(const struct passwd *pw);
-extern int obscure(const char *old, const char *newval, const struct passwd *pwdp);
-
-extern int bb_xopen(const char *pathname, int flags);
-extern int bb_xopen3(const char *pathname, int flags, int mode);
-extern ssize_t bb_xread(int fd, void *buf, size_t count);
-extern void bb_xread_all(int fd, void *buf, size_t count);
-extern unsigned char bb_xread_char(int fd);
-
-#ifndef COMM_LEN
-#ifdef TASK_COMM_LEN
-#define COMM_LEN TASK_COMM_LEN
-#else
-/* synchronize with sizeof(task_struct.comm) in /usr/include/linux/sched.h */
-#define COMM_LEN 16
-#endif
-#endif
-typedef struct {
-	int pid;
-	char user[9];
-	char state[4];
-	unsigned long rss;
-	int ppid;
-#ifdef CONFIG_FEATURE_TOP_CPU_USAGE_PERCENTAGE
-	unsigned pcpu;
-	unsigned pscpu;
-	unsigned long stime, utime;
-#endif
-	char *cmd;
-
-	/* basename of executable file in call to exec(2),
-		size from kernel headers */
-	char short_cmd[COMM_LEN];
-} procps_status_t;
-
-extern procps_status_t * procps_scan(int save_user_arg0);
-extern int compare_string_array(const char * const string_array[], const char *key);
-
-extern int my_query_module(const char *name, int which, void **buf, size_t *bufsize, size_t *ret);
-
-extern void print_login_issue(const char *issue_file, const char *tty);
-extern void print_login_prompt(void);
-
-#ifdef BB_NOMMU
-extern void vfork_daemon(int nochdir, int noclose);
-extern void vfork_daemon_rexec(int nochdir, int noclose,
-		int argc, char **argv, char *foreground_opt);
-#endif
-
-extern int get_terminal_width_height(int fd, int *width, int *height);
-extern unsigned long get_ug_id(const char *s, long (*__bb_getxxnam)(const char *));
-
-typedef struct _sha1_ctx_t_ {
-	uint32_t count[2];
-	uint32_t hash[5];
-	uint32_t wbuf[16];
-} sha1_ctx_t;
-
-void sha1_begin(sha1_ctx_t *ctx);
-void sha1_hash(const void *data, size_t length, sha1_ctx_t *ctx);
-void *sha1_end(void *resbuf, sha1_ctx_t *ctx);
-
-typedef struct _md5_ctx_t_ {
-	uint32_t A;
-	uint32_t B;
-	uint32_t C;
-	uint32_t D;
-	uint64_t total;
-	uint32_t buflen;
-	char buffer[128];
-} md5_ctx_t;
-
-void md5_begin(md5_ctx_t *ctx);
-void md5_hash(const void *data, size_t length, md5_ctx_t *ctx);
-void *md5_end(void *resbuf, md5_ctx_t *ctx);
-
-extern uint32_t *bb_crc32_filltable (int endian);
 
 #ifndef RB_POWER_OFF
 /* Stop system and switch power off if possible.  */
 #define RB_POWER_OFF   0x4321fedc
 #endif
 
-extern const char BB_BANNER[];
+/* Make sure we call functions instead of macros.  */
+#undef isalnum
+#undef isalpha
+#undef isascii
+#undef isblank
+#undef iscntrl
+#undef isgraph
+#undef islower
+#undef isprint
+#undef ispunct
+#undef isspace
+#undef isupper
+#undef isxdigit
+
+/* This one is more efficient - we save ~400 bytes */
+#undef isdigit
+#define isdigit(a) ((unsigned)((a) - '0') <= 9)
+
+
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
 #endif /* __LIBBUSYBOX_H__ */

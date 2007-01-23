@@ -1,4 +1,4 @@
-/* vi:set ts=4:*/
+/* vi: set sw=4 ts=4: */
 /*
  * stat -- display file or file system status
  *
@@ -13,18 +13,6 @@
  * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
  */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <sys/types.h>
-#include <pwd.h>
-#include <grp.h>
-#include <sys/vfs.h>
-#include <time.h>
-#include <getopt.h> /* optind */
-#include <sys/stat.h>
-#include <sys/statfs.h>
-#include <sys/statvfs.h>
-#include <string.h>
 #include "busybox.h"
 #ifdef CONFIG_SELINUX
 #include <selinux/selinux.h>
@@ -64,10 +52,16 @@ static char const *file_type(struct stat const *st)
 
 static char const *human_time(time_t t)
 {
+	/* Old
 	static char *str;
 	str = ctime(&t);
 	str[strlen(str)-1] = '\0';
 	return str;
+	*/
+	/* coreutils 6.3 compat: */
+	static char buf[sizeof("YYYY-MM-DD HH:MM:SS.000000000")];
+	strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S.000000000", localtime(&t));
+	return buf;
 }
 
 /* Return the type of the specified file system.
@@ -527,7 +521,7 @@ static int do_stat(char const *filename, char const *format)
 	if (format == NULL) {
 #ifndef CONFIG_SELINUX
 		if (flags & OPT_TERSE) {
-			format = "%n %s %b %f %u %g %D %i %h %t %T %X %Y %Z %o\n";
+			format = "%n %s %b %f %u %g %D %i %h %t %T %X %Y %Z %o";
 		} else {
 			if (S_ISBLK(statbuf.st_mode) || S_ISCHR(statbuf.st_mode)) {
 				format =

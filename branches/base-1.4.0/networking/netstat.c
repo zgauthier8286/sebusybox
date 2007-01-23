@@ -107,19 +107,6 @@ typedef enum {
 #define SO_WAITDATA     (1<<17)	/* wait data to read            */
 #define SO_NOSPACE      (1<<18)	/* no space to write            */
 
-static char *itoa(unsigned int i)
-{
-	/* 21 digits plus null terminator, good for 64-bit or smaller ints */
-	static char local[22];
-	char *p = &local[21];
-	*p-- = '\0';
-	do {
-		*p-- = '0' + i % 10;
-		i /= 10;
-	} while (i > 0);
-	return p + 1;
-}
-
 static char *get_sname(int port, const char *proto, int num)
 {
 	char *str=itoa(ntohs(port));
@@ -208,7 +195,7 @@ static void tcp_do_one(int lnr, const char *line)
 	}
 
 	if (num < 10) {
-		bb_error_msg("warning, got bogus tcp line.");
+		bb_error_msg("warning, got bogus tcp line");
 		return;
 	}
 	state_str = tcp_state[state];
@@ -279,7 +266,7 @@ static void udp_do_one(int lnr, const char *line)
 	}
 
 	if (num < 10) {
-		bb_error_msg("warning, got bogus udp line.");
+		bb_error_msg("warning, got bogus udp line");
 		return;
 	}
 	switch (state) {
@@ -373,7 +360,7 @@ static void raw_do_one(int lnr, const char *line)
 	}
 
 	if (num < 10) {
-		bb_error_msg("warning, got bogus raw line.");
+		bb_error_msg("warning, got bogus raw line");
 		return;
 	}
 	state_str=itoa(state);
@@ -427,7 +414,7 @@ static void unix_do_one(int nr, const char *line)
 	num = sscanf(line, "%p: %lX %lX %lX %X %X %d %s",
 				 &d, &refcnt, &proto, &unix_flags, &type, &state, &inode, path);
 	if (num < 6) {
-		bb_error_msg("warning, got bogus unix line.");
+		bb_error_msg("warning, got bogus unix line");
 		return;
 	}
 	if (!(has & HAS_INODE))
@@ -552,7 +539,6 @@ static void unix_do_one(int nr, const char *line)
 
 static void do_info(const char *file, const char *name, void (*proc)(int, const char *))
 {
-	char buffer[8192];
 	int lnr = 0;
 	FILE *procinfo;
 
@@ -561,12 +547,15 @@ static void do_info(const char *file, const char *name, void (*proc)(int, const 
 		if (errno != ENOENT) {
 			perror(file);
 		} else {
-		bb_error_msg("no support for `%s' on this system.", name);
+			bb_error_msg("no support for '%s' on this system", name);
 		}
 	} else {
 		do {
-			if (fgets(buffer, sizeof(buffer), procinfo))
+			char *buffer = xmalloc_fgets(procinfo);
+			if (buffer) {
 				(proc)(lnr++, buffer);
+				free(buffer);
+			}
 		} while (!feof(procinfo));
 		fclose(procinfo);
 	}
