@@ -8,8 +8,6 @@
  * Licensed under GPL v2 or later, see file LICENSE in this tarball for details.
  */
 
-/* BB_AUDIT SUSv3 defects - unsupported options -H, -L, and -P. */
-/* BB_AUDIT GNU defects - only extension options supported are -a and -d.  */
 /* http://www.opengroup.org/onlinepubs/007904975/utilities/cp.html */
 
 /* Mar 16, 2003      Manuel Novoa III   (mjn3@codepoet.org)
@@ -17,15 +15,6 @@
  * Size reduction.
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <utime.h>
-#include <errno.h>
-#include <dirent.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "busybox.h"
 #include "libcoreutils/coreutils.h"
 
@@ -109,34 +98,32 @@ int cp_main(int argc, char **argv)
 	/* If there are only two arguments and...  */
 	if (optind + 2 == argc) {
 		s_flags = cp_mv_stat2(*argv, &source_stat,
-		                      (flags & FILEUTILS_DEREFERENCE) ? stat : lstat);
-		if ((s_flags < 0) || ((d_flags = cp_mv_stat(last, &dest_stat)) < 0)) {
-			exit(EXIT_FAILURE);
-		}
+				      (flags & FILEUTILS_DEREFERENCE) ? stat : lstat);
+		if (s_flags < 0)
+			return EXIT_FAILURE;
+		d_flags = cp_mv_stat(last, &dest_stat);
+		if (d_flags < 0)
+			return EXIT_FAILURE;
+
 		/* ...if neither is a directory or...  */
 		if ( !((s_flags | d_flags) & 2) ||
 			/* ...recursing, the 1st is a directory, and the 2nd doesn't exist... */
-			/* ((flags & FILEUTILS_RECUR) && (s_flags & 2) && !d_flags) */
-			/* Simplify the above since FILEUTILS_RECUR >> 1 == 2. */
-			((((flags & FILEUTILS_RECUR) >> 1) & s_flags) && !d_flags)
+			((flags & FILEUTILS_RECUR) && (s_flags & 2) && !d_flags)
 		) {
 			/* ...do a simple copy.  */
-			dest = last;
+			dest = xstrdup(last);
 			goto DO_COPY; /* Note: optind+2==argc implies argv[1]==last below. */
 		}
 	}
 
 	do {
 		dest = concat_path_file(last, bb_get_last_path_component(*argv));
-	DO_COPY:
+ DO_COPY:
 		if (copy_file(*argv, dest, flags) < 0) {
 			status = 1;
 		}
-		if (*++argv == last) {
-			break;
-		}
-		free((void *) dest);
-	} while (1);
+		free((void*)dest);
+	} while (*++argv != last);
 
-	exit(status);
+	return status;
 }

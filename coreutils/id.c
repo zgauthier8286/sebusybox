@@ -14,7 +14,6 @@
  */
 
 #include "busybox.h"
-#include "pwd_.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -34,13 +33,13 @@
 static short printf_full(unsigned int id, const char *arg, const char prefix)
 {
 	const char *fmt = "%cid=%u";
-	short status=EXIT_FAILURE;
+	short status = EXIT_FAILURE;
 
-	if(arg) {
+	if (arg) {
 		fmt = "%cid=%u(%s)";
-		status=EXIT_SUCCESS;
+		status = EXIT_SUCCESS;
 	}
-	bb_printf(fmt, prefix, id, arg);
+	printf(fmt, prefix, id, arg);
 	return status;
 }
 

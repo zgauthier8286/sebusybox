@@ -72,14 +72,14 @@ int copy_file(const char *source, const char *dest, int flags)
 		mode_t saved_umask = 0;
 
 		if (!(flags & FILEUTILS_RECUR)) {
-			bb_error_msg("%s: omitting directory", source);
+			bb_error_msg("omitting directory '%s'", source);
 			return -1;
 		}
 
 		/* Create DEST.  */
 		if (dest_exists) {
 			if (!S_ISDIR(dest_stat.st_mode)) {
-				bb_error_msg("`%s' is not a directory", dest);
+				bb_error_msg("target '%s' is not a directory", dest);
 				return -1;
 			}
 		} else {
@@ -93,7 +93,7 @@ int copy_file(const char *source, const char *dest, int flags)
 
 			if (mkdir(dest, mode) < 0) {
 				umask(saved_umask);
-				bb_perror_msg("cannot create directory `%s'", dest);
+				bb_perror_msg("cannot create directory '%s'", dest);
 				return -1;
 			}
 
@@ -101,7 +101,8 @@ int copy_file(const char *source, const char *dest, int flags)
 		}
 
 		/* Recursively copy files in SOURCE.  */
-		if ((dp = bb_opendir(source)) == NULL) {
+		dp = opendir(source);
+		if (dp == NULL) {
 			status = -1;
 			goto preserve_status;
 		}
@@ -110,7 +111,7 @@ int copy_file(const char *source, const char *dest, int flags)
 			char *new_source, *new_dest;
 
 			new_source = concat_subpath_file(source, d->d_name);
-			if(new_source == NULL)
+			if (new_source == NULL)
 				continue;
 			new_dest = concat_path_file(dest, d->d_name);
 			if (copy_file(new_source, new_dest, flags) < 0)
@@ -243,20 +244,21 @@ dest_removed:
 
 			lpath = xreadlink(source);
 			if (symlink(lpath, dest) < 0) {
-				bb_perror_msg("cannot create symlink `%s'", dest);
+				bb_perror_msg("cannot create symlink '%s'", dest);
+				free(lpath);
 				return -1;
 			}
 			free(lpath);
 
 			if (flags & FILEUTILS_PRESERVE_STATUS)
 				if (lchown(dest, source_stat.st_uid, source_stat.st_gid) < 0)
-					bb_perror_msg("unable to preserve ownership of `%s'", dest);
+					bb_perror_msg("cannot preserve %s of '%s'", "ownership", dest);
 
 			return 0;
 
 		} else {
 			if (mknod(dest, source_stat.st_mode, source_stat.st_rdev) < 0) {
-				bb_perror_msg("unable to create `%s'", dest);
+				bb_perror_msg("cannot create '%s'", dest);
 				return -1;
 			}
 		}
@@ -265,22 +267,24 @@ dest_removed:
 		return -1;
 	}
 
-preserve_status:
+ preserve_status:
 
-	if (flags & FILEUTILS_PRESERVE_STATUS) {
+	if (flags & FILEUTILS_PRESERVE_STATUS
+	/* Cannot happen: */
+	/* && !(flags & (FILEUTILS_MAKE_SOFTLINK|FILEUTILS_MAKE_HARDLINK)) */
+	) {
 		struct utimbuf times;
-		char *msg="unable to preserve %s of `%s'";
 
 		times.actime = source_stat.st_atime;
 		times.modtime = source_stat.st_mtime;
 		if (utime(dest, &times) < 0)
-			bb_perror_msg(msg, "times", dest);
+			bb_perror_msg("cannot preserve %s of '%s'", "times", dest);
 		if (chown(dest, source_stat.st_uid, source_stat.st_gid) < 0) {
 			source_stat.st_mode &= ~(S_ISUID | S_ISGID);
-			bb_perror_msg(msg, "ownership", dest);
+			bb_perror_msg("cannot preserve %s of '%s'", "ownership", dest);
 		}
 		if (chmod(dest, source_stat.st_mode) < 0)
-			bb_perror_msg(msg, "permissions", dest);
+			bb_perror_msg("cannot preserve %s of '%s'", "permissions", dest);
 	}
 
 	return status;
