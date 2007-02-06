@@ -4,25 +4,17 @@
  * Port to busybox: KaiGai Kohei <kaigai@kaigai.gr.jp>
  *
  */
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <getopt.h>
-#include <errno.h>
-#include <string.h>
-#include <selinux/selinux.h>
 #include "busybox.h"
 
-int printmatchpathcon(char *path, int header)
+static int print_matchpathcon(char *path, int noprint)
 {
 	char *buf;
 	int rc = matchpathcon(path, 0, &buf);
 	if (rc < 0) {
-		fprintf(stderr, "matchpathcon(%s) failed: %s\n", path,
-			strerror(errno));
+		bb_perror_msg("matchpathcon(%s) failed", path);
 		return 1;
 	}
-	if (header)
+	if (!noprint)
 		printf("%s\t%s\n", path, buf);
 	else
 		printf("%s\n", buf);
@@ -31,77 +23,62 @@ int printmatchpathcon(char *path, int header)
 	return 0;
 }
 
-#define MATCHPATHCON_OPT_NOT_PRINT	(1<<0)	/* -n */
-#define MATCHPATHCON_OPT_NOT_TRANS	(1<<1)	/* -N */
-#define MATCHPATHCON_OPT_FCONTEXT	(1<<2)	/* -f */
-#define MATCHPATHCON_OPT_PREFIX		(1<<3)	/* -p */
-#define MATCHPATHCON_OPT_VERIFY		(1<<4)	/* -V */
+#define OPT_NOT_PRINT   (1<<0)  /* -n */
+#define OPT_NOT_TRANS   (1<<1)  /* -N */
+#define OPT_FCONTEXT    (1<<2)  /* -f */
+#define OPT_PREFIX      (1<<3)  /* -p */
+#define OPT_VERIFY      (1<<4)  /* -V */
 
 int matchpathcon_main(int argc, char **argv)
 {
-	int i;
-	int header = 1;
-	int verify = 0;
-	int notrans = 0;
 	int error = 0;
-	unsigned long opts;
-	char *fcontext, *prefix;
+	unsigned opts;
+	char *fcontext, *prefix, *path;
 
-	if (argc < 2)
-		bb_show_usage();
+	opt_complementary = "-1:" /* at least one param reqd */
+		"f--p:p--f"; /* mutually exclusive */
+	opts = getopt32(argc, argv, "nNf:p:V", &fcontext, &prefix);
+	argv += optind;
 
-	opts = bb_getopt_ulflags(argc, argv, "nNf:p:V", &fcontext, &prefix);
-	if (opts & BB_GETOPT_ERROR)
-		bb_show_usage();
-	if (opts & MATCHPATHCON_OPT_NOT_PRINT)
-		header = 0;
-	if (opts & MATCHPATHCON_OPT_NOT_TRANS) {
-		notrans = 1;
-		set_matchpathcon_flags(MATCHPATHCON_NOTRANS);
+	if (opts & OPT_NOT_TRANS) {
+		set_matchpathcon_flags(NOTRANS);
 	}
-	if ((opts & MATCHPATHCON_OPT_FCONTEXT) && (opts & MATCHPATHCON_OPT_PREFIX))
-		bb_error_msg_and_die("-f and -p are exclusive");
-
-	if (opts & MATCHPATHCON_OPT_FCONTEXT) {
+	if (opts & OPT_FCONTEXT) {
 		if (matchpathcon_init(fcontext))
-			bb_error_msg_and_die("Error while processing %s: %s",
-					     fcontext, errno ? strerror(errno) : "invalid");
+			bb_perror_msg_and_die("error while processing %s", fcontext);
 	}
-	if (opts & MATCHPATHCON_OPT_PREFIX) {
+	if (opts & OPT_PREFIX) {
 		if (matchpathcon_init_prefix(NULL, prefix))
-			bb_error_msg_and_die("Error while processing %s:  %s",
-					     prefix, errno ? strerror(errno) : "invalid");
+			bb_perror_msg_and_die("error while processing %s", prefix);
 	}
-	if (opts & MATCHPATHCON_OPT_VERIFY)
-		verify = 1;
 
-	for (i = optind; i < argc; i++) {
-		if (verify) {
-			if (selinux_file_context_verify(argv[i], 0)) {
-				printf("%s verified.\n", argv[i]);
-			} else {
-				security_context_t con;
-				int rc;
-				if (notrans)
-					rc = lgetfilecon_raw(argv[i], &con);
-				else
-					rc = lgetfilecon(argv[i], &con);
+	while((path = *argv++) != NULL) {
+		security_context_t con;
+		int rc;
 
-				if (rc >= 0) {
-					printf("%s has context %s, should be ",
-					       argv[i], con);
-					error += printmatchpathcon(argv[i], 0);
-					freecon(con);
-				} else {
-					printf
-					    ("actual context unknown: %s, should be ",
-					     strerror(errno));
-					error += printmatchpathcon(argv[i], 0);
-				}
-			}
-		} else {
-			error += printmatchpathcon(argv[i], header);
+		if (!(opts & OPT_VERIFY)) {
+			error += print_matchpathcon(path, opt & OPT_NOT_PRINT);
+			continue;
 		}
+
+		if (selinux_file_context_verify(path, 0)) {
+			printf("%s verified\n", path);
+			continue;
+		}
+
+		if (opts & OPT_NOT_TRANS)
+			rc = lgetfilecon_raw(path, &con);
+		else
+			rc = lgetfilecon(path, &con);
+
+		if (rc >= 0) {
+			printf("%s has context %s, should be ", path, con);
+			error += print_matchpathcon(path, 1);
+			freecon(con);
+			continue;
+		}
+		printf("actual context unknown: %s, should be ", strerror(errno));
+		error += print_matchpathcon(path, 1);
 	}
 	matchpathcon_fini();
 	return error;

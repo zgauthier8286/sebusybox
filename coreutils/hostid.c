@@ -13,13 +13,14 @@
 #include <unistd.h>
 #include "busybox.h"
 
+int hostid_main(int argc, char ATTRIBUTE_UNUSED **argv);
 int hostid_main(int argc, char ATTRIBUTE_UNUSED **argv)
 {
 	if (argc > 1) {
 		bb_show_usage();
 	}
 
-	bb_printf("%lx\n", gethostid());
+	printf("%lx\n", gethostid());
 
-	bb_fflush_stdout_and_exit(EXIT_SUCCESS);
+	fflush_stdout_and_exit(EXIT_SUCCESS);
 }

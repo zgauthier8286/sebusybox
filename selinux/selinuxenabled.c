@@ -6,10 +6,6 @@
  *
  */
 #include "busybox.h"
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <selinux/selinux.h>
 
 int selinuxenabled_main(int argc, char **argv)
 {

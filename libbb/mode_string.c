@@ -5,7 +5,6 @@
  * Copyright (C) 2003  Manuel Novoa III  <mjn3@codepoet.org>
  *
  * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
- *
  */
 
 /* Aug 13, 2003
@@ -52,7 +51,7 @@ static const char type_chars[16] = "?pc?d?b?-?l?s???";
 /*                                  0123456789abcdef */
 static const char mode_chars[7] = "rwxSTst";
 
-const char *bb_mode_string(int mode)
+const char *bb_mode_string(mode_t mode)
 {
 	static char buf[12];
 	char *p = buf;
@@ -92,7 +91,7 @@ static const char type_chars[16] = "?pc?d?b?-?l?s???";
 /*                                  0123456789abcdef */
 static const char mode_chars[7] = "rwxSTst";
 
-const char *bb_mode_string(int mode)
+const char *bb_mode_string(mode_t mode)
 {
 	static char buf[12];
 	char *p = buf;

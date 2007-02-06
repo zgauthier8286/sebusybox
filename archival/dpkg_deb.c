@@ -4,13 +4,8 @@
  *
  * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
  */
-#include <fcntl.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-#include "unarchive.h"
 #include "busybox.h"
+#include "unarchive.h"
 
 #define DPKG_DEB_OPT_CONTENTS	1
 #define DPKG_DEB_OPT_CONTROL	2
@@ -18,13 +13,14 @@
 #define DPKG_DEB_OPT_EXTRACT	8
 #define DPKG_DEB_OPT_EXTRACT_VERBOSE	16
 
+int dpkg_deb_main(int argc, char **argv);
 int dpkg_deb_main(int argc, char **argv)
 {
 	archive_handle_t *ar_archive;
 	archive_handle_t *tar_archive;
 	llist_t *control_tar_llist = NULL;
-	unsigned long opt;
-	char *extract_dir = NULL;
+	unsigned opt;
+	const char *extract_dir = NULL;
 	short argcount = 1;
 
 	/* Setup the tar archive handle */
@@ -36,17 +32,17 @@ int dpkg_deb_main(int argc, char **argv)
 	ar_archive->filter = filter_accept_list_reassign;
 
 #ifdef CONFIG_FEATURE_DEB_TAR_GZ
-	llist_add_to(&(ar_archive->accept), "data.tar.gz");
-	llist_add_to(&control_tar_llist, "control.tar.gz");
+	llist_add_to(&(ar_archive->accept), (char*)"data.tar.gz");
+	llist_add_to(&control_tar_llist, (char*)"control.tar.gz");
 #endif
 
 #ifdef CONFIG_FEATURE_DEB_TAR_BZ2
-	llist_add_to(&(ar_archive->accept), "data.tar.bz2");
-	llist_add_to(&control_tar_llist, "control.tar.bz2");
+	llist_add_to(&(ar_archive->accept), (char*)"data.tar.bz2");
+	llist_add_to(&control_tar_llist, (char*)"control.tar.bz2");
 #endif
 
-	bb_opt_complementally = "?c--efXx:e--cfXx:f--ceXx:X--cefx:x--cefX";
-	opt = bb_getopt_ulflags(argc, argv, "cefXx");
+	opt_complementary = "?c--efXx:e--cfXx:f--ceXx:X--cefx:x--cefX";
+	opt = getopt32(argc, argv, "cefXx");
 
 	if (opt & DPKG_DEB_OPT_CONTENTS) {
 		tar_archive->action_header = header_verbose_list;
@@ -65,7 +61,7 @@ int dpkg_deb_main(int argc, char **argv)
 		 * it should accept a second argument which specifies a
 		 * specific field to print */
 		ar_archive->accept = control_tar_llist;
-		llist_add_to(&(tar_archive->accept), "./control");
+		llist_add_to(&(tar_archive->accept), (char*)"./control");
 		tar_archive->filter = filter_accept_list;
 		tar_archive->action_data = data_extract_to_stdout;
 	}
@@ -81,7 +77,7 @@ int dpkg_deb_main(int argc, char **argv)
 		bb_show_usage();
 	}
 
-	tar_archive->src_fd = ar_archive->src_fd = bb_xopen(argv[optind++], O_RDONLY);
+	tar_archive->src_fd = ar_archive->src_fd = xopen(argv[optind++], O_RDONLY);
 
 	/* Workout where to extract the files */
 	/* 2nd argument is a dir name */
@@ -90,12 +86,12 @@ int dpkg_deb_main(int argc, char **argv)
 	}
 	if (extract_dir) {
 		mkdir(extract_dir, 0777); /* bb_make_directory(extract_dir, 0777, 0) */
-		bb_xchdir(extract_dir);
+		xchdir(extract_dir);
 	}
 	unpack_ar_archive(ar_archive);
 
 	/* Cleanup */
-	close (ar_archive->src_fd);
+	close(ar_archive->src_fd);
 
-	return(EXIT_SUCCESS);
+	return EXIT_SUCCESS;
 }

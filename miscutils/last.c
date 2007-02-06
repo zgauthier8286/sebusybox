@@ -4,19 +4,11 @@
  *
  * Copyright (C) 2003-2004 by Erik Andersen <andersen@codepoet.org>
  *
- * Licensed under the GPL v2 or later, see the file LICENSE in this tarball.
+ * Licensed under the GPL version 2, see the file LICENSE in this tarball.
  */
 
 #include "busybox.h"
-#include <sys/types.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <utmp.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <string.h>
-#include <time.h>
 
 #ifndef SHUTDOWN_TIME
 #  define SHUTDOWN_TIME 254
@@ -34,6 +26,7 @@
 #error struct utmp member char[] size(s) have changed!
 #endif
 
+int last_main(int argc, char **argv);
 int last_main(int argc, char **argv)
 {
 	struct utmp ut;
@@ -43,7 +36,7 @@ int last_main(int argc, char **argv)
 	if (argc > 1) {
 		bb_show_usage();
 	}
-	file = bb_xopen(bb_path_wtmp_file, O_RDONLY);
+	file = xopen(bb_path_wtmp_file, O_RDONLY);
 
 	printf("%-10s %-14s %-18s %-12.12s %s\n", "USER", "TTY", "HOST", "LOGIN", "TIME");
 	while ((n = safe_read(file, (void*)&ut, sizeof(struct utmp))) != 0) {
@@ -52,7 +45,7 @@ int last_main(int argc, char **argv)
 			bb_perror_msg_and_die("short read");
 		}
 
-		if (strncmp(ut.ut_line, "~", 1) == 0) {
+		if (ut.ut_line[0] == '~') {
 			if (strncmp(ut.ut_user, "shutdown", 8) == 0)
 				ut.ut_type = SHUTDOWN_TIME;
 			else if (strncmp(ut.ut_user, "reboot", 6) == 0)
@@ -95,5 +88,5 @@ int last_main(int argc, char **argv)
 				ctime(&t_tmp) + 4);
 	}
 
-	bb_fflush_stdout_and_exit(EXIT_SUCCESS);
+	fflush_stdout_and_exit(EXIT_SUCCESS);
 }

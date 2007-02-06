@@ -1,3 +1,4 @@
+/* vi: set sw=4 ts=4: */
 #ifndef _IP_COMMON_H
 #define _IP_COMMON_H 1
 
@@ -5,10 +6,16 @@
 #include <asm/types.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
-
+#if !defined IFA_RTA
+#include <linux/if_addr.h>
+#endif
+#if !defined IFLA_RTA
+#include <linux/if_link.h>
+#endif
 
 extern int preferred_family;
-extern char * _SL_;
+//FIXME! Appears in two .h files!
+extern const char * _SL_;
 
 extern void ip_parse_common_args(int *argcp, char ***argvp);
 extern int print_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg);

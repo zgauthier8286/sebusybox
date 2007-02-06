@@ -25,7 +25,7 @@ use of any NSS support files or libraries.
 
 =head1 MAINTAINER
 
-Rob Landley <rob@landley.net>
+Denis Vlasenko <vda.linux@googlemail.com>
 
 =head1 AUTHORS
 
@@ -254,5 +254,5 @@ Tito Ragusa <farmatito@tiscali.it>
 
 =cut
 
-# $Id: busybox_footer.pod,v 1.18 2004/04/25 06:05:14 bug1 Exp $
+# $LastChangedDate: 2007-01-23 02:12:56 +0900 (火, 23  1月 2007) $
 

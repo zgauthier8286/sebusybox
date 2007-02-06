@@ -4,29 +4,10 @@
  *
  * Copyright (C) Arne Bernin <arne@matrix.loopback.org>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
  *
  */
 
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
 #include "busybox.h"
 
 /* From <linux/kd.h> */
@@ -41,18 +22,19 @@ struct kbentry {
 #define NR_KEYS 128
 #define MAX_NR_KEYMAPS 256
 
+int dumpkmap_main(int argc, char **argv);
 int dumpkmap_main(int argc, char **argv)
 {
 	struct kbentry ke;
 	int i, j, fd;
-	char flags[MAX_NR_KEYMAPS], magic[] = "bkeymap";
+	char flags[MAX_NR_KEYMAPS];
 
-	if (argc >= 2 && *argv[1] == '-')
+	if (argc >= 2 && argv[1][0] == '-')
 		bb_show_usage();
 
-	fd = bb_xopen(CURRENT_VC, O_RDWR);
+	fd = xopen(CURRENT_VC, O_RDWR);
 
-	write(1, magic, 7);
+	write(1, "bkeymap", 7);
 
 	/* Here we want to set everything to 0 except for indexes:
 	 * [0-2] [4-6] [8-10] [12] */

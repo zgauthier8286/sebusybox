@@ -1,3 +1,4 @@
+/* vi: set sw=4 ts=4: */
 /*
  * ip.c		"ip" utility frontend.
  *
@@ -16,6 +17,7 @@
 
 #include "busybox.h"
 
+int iptunnel_main(int argc, char **argv);
 int iptunnel_main(int argc, char **argv)
 {
 	ip_parse_common_args(&argc, &argv);

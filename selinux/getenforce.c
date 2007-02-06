@@ -7,26 +7,19 @@
  */
 
 #include "busybox.h"
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <selinux/selinux.h>
 
 int getenforce_main(int argc, char **argv)
 {
 	int rc;
 
 	rc = is_selinux_enabled();
-	if (rc < 0) {
-		bb_error_msg("is_selinux_enabled() failed");
-		return 2;
-	}
+	if (rc < 0)
+		bb_error_msg_and_die("is_selinux_enabled() failed");
+
 	if (rc == 1) {
 		rc = security_getenforce();
-		if (rc < 0) {
-			bb_error_msg("getenforce() failed");
-			return 2;
-		}
+		if (rc < 0)
+			bb_error_msg_and_die("getenforce() failed");
 
 		if (rc)
 			puts("Enforcing");

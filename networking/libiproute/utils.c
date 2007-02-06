@@ -1,3 +1,4 @@
+/* vi: set sw=4 ts=4: */
 /*
  * utils.c
  *
@@ -46,7 +47,7 @@ int get_unsigned(unsigned *val, char *arg, int base)
 	return 0;
 }
 
-int get_u32(__u32 * val, char *arg, int base)
+int get_u32(uint32_t * val, char *arg, int base)
 {
 	unsigned long res;
 	char *ptr;
@@ -60,7 +61,7 @@ int get_u32(__u32 * val, char *arg, int base)
 	return 0;
 }
 
-int get_u16(__u16 * val, char *arg, int base)
+int get_u16(uint16_t * val, char *arg, int base)
 {
 	unsigned long res;
 	char *ptr;
@@ -74,7 +75,7 @@ int get_u16(__u16 * val, char *arg, int base)
 	return 0;
 }
 
-int get_u8(__u8 * val, char *arg, int base)
+int get_u8(uint8_t * val, char *arg, int base)
 {
 	unsigned long res;
 	char *ptr;
@@ -88,7 +89,7 @@ int get_u8(__u8 * val, char *arg, int base)
 	return 0;
 }
 
-int get_s16(__s16 * val, char *arg, int base)
+int get_s16(int16_t * val, char *arg, int base)
 {
 	long res;
 	char *ptr;
@@ -102,7 +103,7 @@ int get_s16(__s16 * val, char *arg, int base)
 	return 0;
 }
 
-int get_s8(__s8 * val, char *arg, int base)
+int get_s8(int8_t * val, char *arg, int base)
 {
 	long res;
 	char *ptr;
@@ -124,7 +125,7 @@ int get_addr_1(inet_prefix * addr, char *name, int family)
 
 	memset(addr, 0, sizeof(*addr));
 
-	if (strcmp(name, bb_INET_default) == 0 ||
+	if (strcmp(name, bb_str_default) == 0 ||
 		strcmp(name, "all") == 0 || strcmp(name, "any") == 0) {
 		addr->family = family;
 		addr->bytelen = (family == AF_INET6 ? 16 : 4);
@@ -168,7 +169,7 @@ int get_prefix_1(inet_prefix * dst, char *arg, int family)
 
 	memset(dst, 0, sizeof(*dst));
 
-	if (strcmp(arg, bb_INET_default) == 0 || strcmp(arg, "any") == 0) {
+	if (strcmp(arg, bb_str_default) == 0 || strcmp(arg, "any") == 0) {
 		dst->family = family;
 		dst->bytelen = 0;
 		dst->bitlen = 0;
@@ -177,7 +178,7 @@ int get_prefix_1(inet_prefix * dst, char *arg, int family)
 
 	slash = strchr(arg, '/');
 	if (slash)
-		*slash = 0;
+		*slash = '\0';
 	err = get_addr_1(dst, arg, family);
 	if (err == 0) {
 		switch (dst->family) {
@@ -205,10 +206,10 @@ int get_prefix_1(inet_prefix * dst, char *arg, int family)
 int get_addr(inet_prefix * dst, char *arg, int family)
 {
 	if (family == AF_PACKET) {
-		bb_error_msg_and_die("\"%s\" may be inet address, but it is not allowed in this context.", arg);
+		bb_error_msg_and_die("\"%s\" may be inet address, but it is not allowed in this context", arg);
 	}
 	if (get_addr_1(dst, arg, family)) {
-		bb_error_msg_and_die("an inet address is expected rather than \"%s\".", arg);
+		bb_error_msg_and_die("an inet address is expected rather than \"%s\"", arg);
 	}
 	return 0;
 }
@@ -216,15 +217,15 @@ int get_addr(inet_prefix * dst, char *arg, int family)
 int get_prefix(inet_prefix * dst, char *arg, int family)
 {
 	if (family == AF_PACKET) {
-		bb_error_msg_and_die("\"%s\" may be inet address, but it is not allowed in this context.", arg);
+		bb_error_msg_and_die("\"%s\" may be inet address, but it is not allowed in this context", arg);
 	}
 	if (get_prefix_1(dst, arg, family)) {
-		bb_error_msg_and_die("an inet address is expected rather than \"%s\".", arg);
+		bb_error_msg_and_die("an inet address is expected rather than \"%s\"", arg);
 	}
 	return 0;
 }
 
-__u32 get_addr32(char *name)
+uint32_t get_addr32(char *name)
 {
 	inet_prefix addr;
 
@@ -236,42 +237,35 @@ __u32 get_addr32(char *name)
 
 void incomplete_command(void)
 {
-	bb_error_msg("Command line is not complete. Try option \"help\"");
-	exit(-1);
+	bb_error_msg_and_die("command line is not complete, try option \"help\"");
 }
 
-void invarg(const char * const arg, const char * const opt)
+void invarg(const char *arg, const char *opt)
 {
-	bb_error_msg(bb_msg_invalid_arg, arg, opt);
-	exit(-1);
+	bb_error_msg_and_die(bb_msg_invalid_arg, arg, opt);
 }
 
-void duparg(char *key, char *arg)
+void duparg(const char *key, const char *arg)
 {
-	bb_error_msg("duplicate \"%s\": \"%s\" is the second value.", key, arg);
-	exit(-1);
+	bb_error_msg_and_die("duplicate \"%s\": \"%s\" is the second value", key, arg);
 }
 
-void duparg2(char *key, char *arg)
+void duparg2(const char *key, const char *arg)
 {
-	bb_error_msg("either \"%s\" is duplicate, or \"%s\" is a garbage.", key, arg);
-	exit(-1);
+	bb_error_msg_and_die("either \"%s\" is duplicate, or \"%s\" is garbage", key, arg);
 }
 
-int matches(char *cmd, char *pattern)
+int matches(const char *cmd, const char *pattern)
 {
 	int len = strlen(cmd);
 
-	if (len > strlen(pattern)) {
-		return -1;
-	}
-	return memcmp(pattern, cmd, len);
+	return strncmp(pattern, cmd, len);
 }
 
 int inet_addr_match(inet_prefix * a, inet_prefix * b, int bits)
 {
-	__u32 *a1 = a->data;
-	__u32 *a2 = b->data;
+	uint32_t *a1 = a->data;
+	uint32_t *a2 = b->data;
 	int words = bits >> 0x05;
 
 	bits &= 0x1f;
@@ -281,8 +275,8 @@ int inet_addr_match(inet_prefix * a, inet_prefix * b, int bits)
 			return -1;
 
 	if (bits) {
-		__u32 w1, w2;
-		__u32 mask;
+		uint32_t w1, w2;
+		uint32_t mask;
 
 		w1 = a1[words];
 		w2 = a2[words];
@@ -294,26 +288,6 @@ int inet_addr_match(inet_prefix * a, inet_prefix * b, int bits)
 	}
 
 	return 0;
-}
-
-int __iproute2_hz_internal;
-
-int __get_hz(void)
-{
-	int hz = 0;
-	FILE *fp = fopen("/proc/net/psched", "r");
-
-	if (fp) {
-		unsigned nom, denom;
-
-		if (fscanf(fp, "%*08x%*08x%08x%08x", &nom, &denom) == 2)
-			if (nom == 1000000)
-				hz = denom;
-		fclose(fp);
-	}
-	if (hz)
-		return hz;
-	return sysconf(_SC_CLK_TCK);
 }
 
 const char *rt_addr_n2a(int af, int ATTRIBUTE_UNUSED len,
