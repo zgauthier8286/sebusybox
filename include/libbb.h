@@ -34,6 +34,9 @@
 #ifdef CONFIG_SELINUX
 #include <selinux/selinux.h>
 #endif
+#ifdef CONFIG_SELINUX_DYNTRANSITION
+#include <selinux/flask.h>
+#endif
 
 #include "pwd_.h"
 #include "grp_.h"

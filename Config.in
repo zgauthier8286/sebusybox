@@ -210,6 +210,14 @@ config CONFIG_SELINUX
 
 	  Most people will leave this set to 'N'.
 
+config CONFIG_SELINUX_DYNTRANSITION
+	bool "Enable to assign domain to applet"
+	default n
+	depends on CONFIG_SELINUX
+	help
+		Without this option, BusyBox can not exploit full SELinux feature. All applets run as same domain on SELinux. 		
+		If you want to assign different domains to applets, choose y.
+
 config CONFIG_SELINUX_USE_SEMANAGE
 	bool "Use semange framework"
 	default n
