@@ -476,6 +476,67 @@ struct BB_applet *find_applet_by_name (const char *name)
 				  applet_name_compare);
 }
 
+#if ENABLE_SELINUX_DYNTRANSITION
+/*Obtain applet label, when failed, return NULL*/
+static security_context_t get_applet_label(const char *name) {
+	char *busybox_path;
+	char *filename;
+	security_context_t context;
+	int rc;
+
+	busybox_path = xreadlink(CONFIG_BUSYBOX_EXEC_PATH);
+	filename = concat_path_file(busybox_path, name);
+
+	rc = matchpathcon(filename, 0, &context);
+	if (rc) {
+		return NULL;
+	}
+	free(filename);
+	free(busybox_path);
+	return context;
+}
+
+static int set_applet_domain(security_context_t applet_label) {
+	security_context_t current_domain = NULL;
+	security_context_t applet_domain = NULL;
+	int rc;
+	int ret = 0;
+	if (applet_label) {
+		rc = getcon(&current_domain);
+		if (rc) {
+			bb_perror_msg("can not getcon\n");
+			ret = 1;
+			goto out;
+		}
+
+		rc = security_compute_create(current_domain, applet_label, SECCLASS_PROCESS, &applet_domain);		
+		if (rc) {
+			bb_perror_msg("can not security_compute_create\n");
+			ret = 1;
+			goto out;
+		}
+		if (strcmp(current_domain, applet_domain) == 0){
+			goto out;
+		}
+		rc = setcon(applet_domain);
+		if (rc){
+			bb_perror_msg("can not setcon\n");
+			ret = 1;
+			goto out;
+		}
+	} 
+
+ out:
+	if (current_domain)
+		freecon(current_domain);
+	if (applet_domain)
+		freecon(applet_domain);	
+	return ret;
+
+}
+
+#endif /* ENABLE_SELINUX_DYNTRANSITION */
+
 void run_applet_by_name (const char *name, int argc, char **argv)
 {
 	if(ENABLE_FEATURE_SUID_CONFIG) parse_config_file ();
@@ -487,6 +548,17 @@ void run_applet_by_name (const char *name, int argc, char **argv)
 		bb_applet_name = applet_using->name;
 		if(argc==2 && !strcmp(argv[1], "--help")) bb_show_usage ();
 		if(ENABLE_FEATURE_SUID) check_suid (applet_using);
+#if ENABLE_SELINUX_DYNTRANSITION
+		if (is_selinux_enabled()){
+			security_context_t applet_label;
+			applet_label = get_applet_label(bb_applet_name);
+			if (applet_label && set_applet_domain(applet_label)) {
+				bb_error_msg("Warning failed to change domain\n");
+			}
+			if (applet_label)
+				freecon(applet_label);
+		}
+#endif /* ENABLE_SELINUX_DYNTRANSITION */
 		exit ((*(applet_using->main)) (argc, argv));
 	}
 }
